@@ -1339,7 +1339,7 @@
         });
       });
 
-      // Selección de punto
+      // Selección de punto en el mapa
       map.on("click", (e) => {
         if (!pickMode) return;
 
@@ -1358,6 +1358,9 @@
         pickMode = false;
         pickOverlay.style.display = "none";
         pickBackdrop.style.display = "none";
+
+        // Reabrir el panel móvil después de seleccionar el punto
+        reportSheet.classList.add("open");
       });
 
       function startPick() {
@@ -1372,7 +1375,12 @@
       }
 
       const mapPickBtnMobile = document.getElementById("map-pick-btn-mobile");
-      mapPickBtnMobile.addEventListener("click", startPick);
+      mapPickBtnMobile.addEventListener("click", () => {
+        // activar modo selección
+        startPick();
+        // minimizar el panel para dejar ver el mapa
+        reportSheet.classList.remove("open");
+      });
 
       // Tabs escritorio
       const tabList = document.getElementById("tab-list");
