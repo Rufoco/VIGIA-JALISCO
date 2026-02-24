@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>🛰️ Vigía Jalisco – Mapa ciudadano de incidentes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Favicon con emoji de foco/alerta centrado -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ctext x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='70'%3E💡%3C/text%3E%3C/svg%3E"
+    />
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: #0a0a0a;
+        color: #f0f0f0;
+      }
+
+      #app {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      header {
+        background: linear-gradient(90deg, #b71c1c 0%, #880e4f 50%, #311b92 100%);
+        padding: 10px 18px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Sutil brillo diagonal detrás del logo */
+      header::before {
+        content: "";
+        position: absolute;
+        top: -40px;
+        right: -80px;
+        width: 180px;
+        height: 180px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 60%);
+        opacity: 0.7;
+        pointer-events: none;
+      }
+
+      .header-left {
+        position: relative;
+        z-index: 1;
+      }
+
+      .header-left h1 {
+        font-size: 18px;
+        margin: 0 0 2px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .header-left h1 span.icon {
+        font-size: 20px;
+      }
+
+      .header-left p {
+        margin: 0;
+        font-size: 11px;
+        opacity: 0.9;
+        max-width: 280px;
+      }
+
+      .brand-badge {
+        position: relative;
+        z-index: 1;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.28);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+      }
+
+      .brand-badge-main {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .brand-badge-main span.icon {
+        font-size: 17px;
+      }
+
+      .brand-badge-sub {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.4px;
+        opacity: 0.85;
+      }
+
+      /* Barra EN VIVO */
+      .live-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 16px;
+        background: #111;
+        border-bottom: 1px solid #331111;
+        font-size: 11px;
+        color: #f5f5f5;
+      }
+
+      .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #e53935;
+        box-shadow: 0 0 8px rgba(229, 57, 53, 0.9);
+      }
+
+      .live-text {
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+
+      .live-updated {
+        margin-left: auto;
+        color: #bbbbbb;
+        font-size: 10px;
+      }
+
+      .main {
+        flex: 1;
+        display: flex;
+        min-height: 0;
+      }
+
+      .sidebar {
+        width: 320px;
+        max-width: 100%;
+        border-right: 1px solid #333;
+        background: #111;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sidebar-header {
+        padding: 8px 12px;
+        border-bottom: 1px solid #333;
+        font-size: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .count-badge {
+        background: #e53935;
+        padding: 2px 8px;
+        border-radius: 2px;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid #333;
+      }
+
+      .tab {
+        flex: 1;
+        padding: 6px 0;
+        text-align: center;
+        font-size: 11px;
+        cursor: pointer;
+        color: #aaa;
+        border-bottom: 2px solid transparent;
+      }
+
+      .tab.active {
+        color: #fff;
+        border-bottom-color: #e53935;
+      }
+
+      .filter-bar {
+        padding: 6px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        border-bottom: 1px solid #333;
+      }
+
+      .filter-btn {
+        border: 1px solid #444;
+        background: #1a1a1a;
+        color: #aaa;
+        font-size: 10px;
+        padding: 3px 6px;
+        border-radius: 2px;
+        cursor: pointer;
+      }
+
+      .filter-btn.active {
+        border-color: #e53935;
+        color: #e53935;
+        background: rgba(229, 57, 53, 0.1);
+      }
+
+      .incidents-list {
+        flex: 1;
+        overflow-y: auto;
+        font-size: 12px;
+      }
+
+      .incident-item {
+        padding: 8px 10px;
+        border-bottom: 1px solid #222;
+        cursor: pointer;
+      }
+
+      .incident-item:hover {
+        background: rgba(229, 57, 53, 0.1);
+      }
+
+      .incident-title {
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+
+      .incident-time {
+        font-size: 10px;
+        color: #aaa;
+      }
+
+      .incident-tags {
+        margin-top: 4px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .tag-pill {
+        font-size: 9px;
+        padding: 2px 4px;
+        border-radius: 2px;
+        border: 1px solid #444;
+      }
+
+      .tag-type {
+        border-color: #ffb300;
+        color: #ffb300;
+      }
+
+      .tag-confidence-low {
+        border-color: #ff9800;
+        color: #ff9800;
+      }
+
+      .tag-confidence-high {
+        border-color: #4caf50;
+        color: #4caf50;
+      }
+
+      .tag-source-citizen {
+        border-color: #42a5f5;
+        color: #42a5f5;
+      }
+
+      .tag-source-media {
+        border-color: #ab47bc;
+        color: #ab47bc;
+      }
+
+      .tag-expired {
+        border-color: #757575;
+        color: #757575;
+      }
+
+      .report-panel {
+        padding: 10px;
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 12px;
+      }
+
+      .report-panel.visible {
+        display: flex;
+      }
+
+      .field-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        color: #aaa;
+        margin-bottom: 2px;
+      }
+
+      .field-group input,
+      .field-group select,
+      .field-group textarea {
+        width: 100%;
+        box-sizing: border-box;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        color: #eee;
+        padding: 6px;
+        border-radius: 3px;
+        font-size: 12px;
+      }
+
+      .field-group textarea {
+        resize: none;
+        height: 60px;
+      }
+
+      .map-pick-btn {
+        width: 100%;
+        padding: 6px;
+        background: #1a1a1a;
+        border-radius: 3px;
+        border: 1px dashed #555;
+        color: #aaa;
+        font-size: 11px;
+        cursor: pointer;
+        text-align: center;
+      }
+
+      .map-pick-btn.picked {
+        border-style: solid;
+        border-color: #4caf50;
+        color: #4caf50;
+      }
+
+      .submit-btn {
+        margin-top: 6px;
+        padding: 8px;
+        background: #e53935;
+        border: none;
+        border-radius: 3px;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      .submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .status-msg {
+        font-size: 10px;
+        margin-top: 4px;
+      }
+
+      .status-ok {
+        color: #66bb6a;
+      }
+
+      .status-err {
+        color: #ef5350;
+      }
+
+      .map-container {
+        flex: 1;
+        position: relative;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+
+      #pick-overlay {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #ffc107;
+        color: #000;
+        padding: 12px 20px;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 600;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        z-index: 500;
+        display: none;
+        text-align: center;
+      }
+
+      .map-pick-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 193, 7, 0.18);
+        pointer-events: none;
+        z-index: 400;
+        display: none;
+      }
+
+      /* Botón de "Mi ubicación" (Leaflet control) */
+      .locate-button {
+        background: #ffffff;
+        border-radius: 4px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+      }
+
+      .locate-button:hover {
+        background: #f0f0f0;
+      }
+
+      .locate-button:active {
+        background: #e0e0e0;
+      }
+
+      /* Modal de aviso inicial */
+      #disclaimer-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: inherit;
+      }
+
+      .disclaimer-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+      }
+
+      .disclaimer-modal {
+        position: relative;
+        max-width: 420px;
+        width: 90%;
+        background: #111;
+        border-radius: 12px;
+        border: 1px solid #ff5252;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+        padding: 24px 24px 20px;
+        color: #f5f5f5;
+        text-align: center;
+        z-index: 1;
+      }
+
+      .disclaimer-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+      }
+
+      .disclaimer-title {
+        margin: 0 0 12px;
+        color: #ff5252;
+        font-size: 18px;
+        letter-spacing: 1px;
+      }
+
+      .disclaimer-text {
+        margin: 6px 0;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .disclaimer-footer {
+        margin-top: 12px;
+        font-size: 11px;
+        color: #bbbbbb;
+      }
+
+      .disclaimer-button {
+        margin-top: 18px;
+        width: 100%;
+        padding: 10px 0;
+        background: #e53935;
+        border: none;
+        border-radius: 4px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        letter-spacing: 0.5px;
+      }
+
+      @media (max-width: 768px) {
+        header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+        }
+
+        .brand-badge {
+          align-self: flex-end;
+        }
+
+        .header-left p {
+          max-width: 100%;
+        }
+
+        .main {
+          flex-direction: column;
+        }
+        .sidebar {
+          width: 100%;
+          max-height: 50%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- AVISO INICIAL -->
+    <div id="disclaimer-overlay">
+      <div class="disclaimer-backdrop"></div>
+      <div class="disclaimer-modal">
+        <div class="disclaimer-icon">⚠️</div>
+        <h2 class="disclaimer-title">AVISO IMPORTANTE</h2>
+        <p class="disclaimer-text">
+          Este mapa muestra <strong>reportes ciudadanos</strong> sobre incidentes de seguridad en Jalisco.
+        </p>
+        <p class="disclaimer-text">
+          La información se recopila en tiempo real y
+          <strong>puede contener errores, imprecisiones o datos desactualizados</strong>.
+          Algunos incidentes podrían haberse resuelto o la ubicación podría no ser exacta.
+        </p>
+        <p class="disclaimer-text">
+          Úsalo solo como referencia, <strong>no como fuente oficial</strong>.
+        </p>
+        <div class="disclaimer-footer">
+          Para información oficial consulta a las autoridades de Jalisco.
+          Emergencias: <strong>911</strong>.
+        </div>
+        <button id="disclaimer-accept-btn" class="disclaimer-button">
+          ENTENDIDO — VER EL MAPA
+        </button>
+      </div>
+    </div>
+
+    <div id="app">
+      <header>
+        <div class="header-left">
+          <h1>
+            <span class="icon">🚨</span>
+            <span>Mapa ciudadano de incidentes</span>
+          </h1>
+          <p>
+            No es fuente oficial ni servicio de emergencias. Si estás en peligro,
+            llama al 911.
+          </p>
+        </div>
+        <div class="brand-badge">
+          <div class="brand-badge-main">
+            <span class="icon">🛰️</span>
+            <span>Vigía Jalisco</span>
+          </div>
+          <div class="brand-badge-sub">Mapa ciudadano en tiempo real</div>
+        </div>
+      </header>
+
+      <!-- Barra EN VIVO -->
+      <div class="live-bar">
+        <span class="live-dot"></span>
+        <span class="live-text">EN VIVO</span>
+        <span class="live-updated" id="live-updated">
+          Actualizado...
+        </span>
+      </div>
+
+      <div class="main">
+        <aside class="sidebar">
+          <div class="sidebar-header">
+            <span>Incidentes reportados</span>
+            <span class="count-badge" id="incident-count">0</span>
+          </div>
+
+          <div class="tabs">
+            <div class="tab active" id="tab-list">🗺️ Mapa</div>
+            <div class="tab" id="tab-report">📢 Reportar</div>
+          </div>
+
+          <div class="filter-bar" id="filter-bar">
+            <button class="filter-btn active" data-mins="240">
+              4 horas
+            </button>
+            <button class="filter-btn" data-mins="60">1 hora</button>
+            <button class="filter-btn" data-mins="30">30 min</button>
+            <button class="filter-btn" data-mins="10">10 min</button>
+            <button class="filter-btn" data-mins="1440">24 h</button>
+            <button class="filter-btn" data-mins="0">Todos</button>
+          </div>
+
+          <div class="incidents-list" id="incidents-list"></div>
+
+          <div class="report-panel" id="report-panel">
+            <div class="field-group">
+              <div class="field-label">Tipo de incidente</div>
+              <select id="incident-type">
+                <option value="">Selecciona...</option>
+                <option value="VEHICLE_FIRE">🔥 Vehículo incendiado</option>
+                <option value="ROAD_BLOCK">🛑 Bloqueo en vialidad</option>
+                <option value="TIRE_SPIKES">🛞 Poncha llantas / clavos</option>
+                <option value="SHOOTING">💥 Balacera / enfrentamiento</option>
+                <option value="CRIME">🕵️‍♂️ Robo / secuestro / extorsión</option>
+                <option value="OTHER">⚠️ Otro peligro</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">Descripción (opcional)</div>
+              <textarea
+                id="incident-desc"
+                maxlength="500"
+                placeholder="Breve descripción..."
+              ></textarea>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">Link de evidencia (opcional)</div>
+              <input
+                type="text"
+                id="incident-evidence"
+                placeholder="Enlace a foto/video/noticia"
+              />
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">Foto (opcional)</div>
+              <input type="file" id="incident-photo" accept="image/*" />
+            </div>
+
+            <div class="field-group">
+              <button type="button" class="map-pick-btn" id="map-pick-btn">
+                📍 Haz click aquí y luego en el mapa para elegir ubicación
+              </button>
+            </div>
+
+            <button class="submit-btn" id="submit-btn">
+              Enviar reporte
+            </button>
+
+            <div class="status-msg" id="status-msg"></div>
+          </div>
+        </aside>
+
+        <div class="map-container">
+          <div class="map-pick-backdrop" id="pick-backdrop"></div>
+          <div id="pick-overlay">
+            📍 Haz click donde ocurrió el incidente<br />
+            <span style="font-size:11px;">Click en cualquier lugar del mapa</span>
+          </div>
+          <div id="map"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Supabase JS -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
+
+    <script>
+      // ===== 1. CONFIGURA AQUÍ TUS DATOS DE SUPABASE =====
+      const SUPABASE_URL = "https://hcpfhqbcjgdwfqoympni.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjcGZocWJjamdkd2Zxb3ltcG5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzA5NDQsImV4cCI6MjA4NzQ0Njk0NH0.8pIzPhDXDRWeoJVxc3adomW-XXpIleO07dRV5-hmC2k";
+
+      const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+
+      // ===== 2. MAPA =====
+      const map = L.map("map").setView([20.6736, -103.344], 11); // GDL
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+      }).addTo(map);
+
+      let markersLayer = L.layerGroup().addTo(map);
+
+      const baseIconUrl =
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png";
+      const baseShadowUrl =
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png";
+
+      // Pin azul para selección de ubicación
+      const incidentIcon = new L.Icon({
+        iconUrl: baseIconUrl,
+        shadowUrl: baseShadowUrl,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+
+      // ===== 3. ESTADO EN MEMORIA =====
+      const INCIDENT_TYPES = {
+        VEHICLE_FIRE: { label: "Vehículo incendiado" },
+        ROAD_BLOCK: { label: "Bloqueo en vialidad" },
+        TIRE_SPIKES: { label: "Poncha llantas / clavos" },
+        SHOOTING: { label: "Balacera / enfrentamiento" },
+        CRIME: { label: "Robo / secuestro / extorsión" },
+        OTHER: { label: "Otro peligro" },
+
+        // Tipos viejos que ya tienes en la tabla
+        BLOCK: { label: "Bloqueo en vialidad" },
+        ROBBERY: { label: "Robo" }
+      };
+
+      const TYPE_EMOJIS = {
+        VEHICLE_FIRE: "🔥",
+        ROAD_BLOCK: "🛑",
+        TIRE_SPIKES: "🛞",
+        SHOOTING: "💥",
+        CRIME: "🕵️‍♂️",
+        OTHER: "⚠️",
+        BLOCK: "🛑",
+        ROBBERY: "🕵️‍♂️"
+      };
+
+      const MINUTES = 60 * 1000;
+      let allIncidents = [];
+      let pickMode = false;
+      let selectedLat = null;
+      let selectedLng = null;
+      let lastSubmitTs = 0;
+      let tempPickMarker = null;
+
+      const pickOverlay = document.getElementById("pick-overlay");
+      const pickBackdrop = document.getElementById("pick-backdrop");
+
+      let userLocationMarker = null;
+
+      // ===== 4. UTILIDADES =====
+      function formatTimeAgo(ts) {
+        if (!ts) return "";
+        const diff = Date.now() - new Date(ts).getTime();
+        const mins = Math.floor(diff / MINUTES);
+        if (mins < 1) return "Hace instantes";
+        if (mins < 60) return `Hace ${mins} min`;
+        const hours = Math.floor(mins / 60);
+        if (hours === 1) return "Hace 1 h";
+        return `Hace ${hours} h`;
+      }
+
+      function getTypeEmoji(type) {
+        return TYPE_EMOJIS[type] || TYPE_EMOJIS.OTHER;
+      }
+
+      function getTypeLabel(type) {
+        const info = INCIDENT_TYPES[type] || INCIDENT_TYPES.OTHER;
+        const emoji = TYPE_EMOJIS[type] || TYPE_EMOJIS.OTHER;
+        return `${emoji} ${info.label}`;
+      }
+
+      function isExpired(incident) {
+        if (!incident.created_at) return false;
+        const created = new Date(incident.created_at).getTime();
+        const DAY_24H = 24 * 60 * 60 * 1000;
+        return Date.now() - created > DAY_24H;
+      }
+
+      function formatUpdatedTime(date) {
+        const d = date;
+        const dia = d.toLocaleDateString("es-MX", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric"
+        });
+        const hora = d.toLocaleTimeString("es-MX", {
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+        return `${dia}, ${hora}`;
+      }
+
+      function updateLiveBar() {
+        const el = document.getElementById("live-updated");
+        if (!el) return;
+        el.textContent = `Actualizado: ${formatUpdatedTime(new Date())}`;
+      }
+
+      // ===== 5. CARGAR INCIDENTES =====
+      async function loadIncidents() {
+        const { data, error } = await supabaseClient
+          .from("incidents")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(300);
+
+        if (error) {
+          console.error("Error cargando incidentes:", error);
+          return;
+        }
+
+        allIncidents = data || [];
+        renderAll();
+        updateLiveBar();
+      }
+
+      // ===== 6. RENDER LISTA + MAPA (solo últimos 24h) =====
+      function renderAll() {
+        const listEl = document.getElementById("incidents-list");
+        const countEl = document.getElementById("incident-count");
+        markersLayer.clearLayers();
+
+        listEl.innerHTML = "";
+
+        const visible = allIncidents
+          .map((inc) => ({
+            ...inc,
+            lat: Number(inc.lat),
+            lng: Number(inc.lng)
+          }))
+          .filter(
+            (inc) =>
+              Number.isFinite(inc.lat) &&
+              Number.isFinite(inc.lng) &&
+              !isExpired(inc)
+          );
+
+        visible.forEach((inc) => {
+          const item = document.createElement("div");
+          item.className = "incident-item";
+
+          const title = document.createElement("div");
+          title.className = "incident-title";
+          title.textContent = getTypeLabel(inc.type);
+          item.appendChild(title);
+
+          if (inc.description && inc.description !== "EMPTY") {
+            const desc = document.createElement("div");
+            desc.textContent = inc.description;
+            desc.style.fontSize = "11px";
+            desc.style.color = "#ccc";
+            item.appendChild(desc);
+          }
+
+          const time = document.createElement("div");
+          time.className = "incident-time";
+          time.textContent = formatTimeAgo(inc.created_at);
+          item.appendChild(time);
+
+          const tags = document.createElement("div");
+          tags.className = "incident-tags";
+
+          const typeTag = document.createElement("span");
+          typeTag.className = "tag-pill tag-type";
+          typeTag.textContent = getTypeLabel(inc.type);
+          tags.appendChild(typeTag);
+
+          const confTag = document.createElement("span");
+          confTag.className = `tag-pill ${
+            inc.confidence === "high"
+              ? "tag-confidence-high"
+              : "tag-confidence-low"
+          }`;
+          confTag.textContent =
+            inc.confidence === "high" ? "Alta confianza" : "Sin confirmar";
+          tags.appendChild(confTag);
+
+          const sourceTag = document.createElement("span");
+          sourceTag.className = `tag-pill ${
+            inc.source === "citizen"
+              ? "tag-source-citizen"
+              : "tag-source-media"
+          }`;
+          sourceTag.textContent =
+            inc.source === "citizen" ? "Ciudadano" : inc.source;
+          tags.appendChild(sourceTag);
+
+          if (inc.photo_url || inc.evidence_link) {
+            const evTag = document.createElement("span");
+            evTag.className = "tag-pill";
+            evTag.textContent = "Con evidencia";
+            tags.appendChild(evTag);
+          }
+
+          item.appendChild(tags);
+
+          item.addEventListener("click", () => {
+            if (Number.isFinite(inc.lat) && Number.isFinite(inc.lng)) {
+              map.setView([inc.lat, inc.lng], 13);
+            }
+          });
+
+          listEl.appendChild(item);
+
+          const emojiIcon = L.divIcon({
+            className: "emoji-marker",
+            html: `<div style="
+              font-size: 22px;
+              line-height: 1;
+              text-shadow: 0 0 4px rgba(0,0,0,0.7);
+              transform: translate(-50%, -50%);
+            ">${getTypeEmoji(inc.type)}</div>`,
+            iconSize: [22, 22],
+            iconAnchor: [11, 11]
+          });
+
+          const marker = L.marker([inc.lat, inc.lng], { icon: emojiIcon });
+
+          let popupHtml = `<div class="popup-content">
+            <h3>${getTypeLabel(inc.type)}</h3>
+            <p>${inc.description && inc.description !== "EMPTY"
+              ? inc.description
+              : "(Sin descripción)"}</p>
+            <p style="font-size:11px;color:#aaa;">${formatTimeAgo(
+              inc.created_at
+            )} · Fuente: ${inc.source}</p>`;
+
+          if (inc.photo_url) {
+            popupHtml += `<p><a href="${inc.photo_url}" target="_blank" rel="noopener" style="color:#ffb300;">Ver foto</a></p>`;
+          } else if (inc.evidence_link) {
+            popupHtml += `<p><a href="${inc.evidence_link}" target="_blank" rel="noopener" style="color:#ffb300;">Ver evidencia</a></p>`;
+          }
+
+          popupHtml += `</div>`;
+
+          marker.bindPopup(popupHtml);
+          markersLayer.addLayer(marker);
+        });
+
+        countEl.textContent = visible.length;
+      }
+
+      // ===== 7. SUBIR FOTO A STORAGE =====
+      async function uploadPhoto(file) {
+        if (!file) return null;
+        const ext = file.name.split(".").pop();
+        const fileName = `${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2)}.${ext}`;
+        const filePath = `public/${fileName}`;
+
+        const { data, error } = await supabaseClient.storage
+          .from("incident-photos")
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: false
+          });
+
+        if (error) {
+          console.error("Error subiendo foto:", error);
+          return null;
+        }
+
+        const { data: pub } = supabaseClient.storage
+          .from("incident-photos")
+          .getPublicUrl(filePath);
+
+        return pub?.publicUrl || null;
+      }
+
+      // ===== 8. ENVIAR REPORTE =====
+      async function submitReport() {
+        const statusEl = document.getElementById("status-msg");
+        const btn = document.getElementById("submit-btn");
+
+        const typeEl = document.getElementById("incident-type");
+        const descEl = document.getElementById("incident-desc");
+        const evidenceEl = document.getElementById("incident-evidence");
+        const photoEl = document.getElementById("incident-photo");
+
+        const type = typeEl.value;
+        const description = (descEl.value || "").trim().slice(0, 500);
+        const evidenceLink = (evidenceEl.value || "").trim() || null;
+        const photoFile = photoEl.files[0];
+
+        if (!type) {
+          alert("Selecciona un tipo de incidente.");
+          return;
+        }
+        if (!selectedLat || !selectedLng) {
+          alert("Selecciona una ubicación en el mapa.");
+          return;
+        }
+
+        if (Date.now() - lastSubmitTs < 15000) {
+          alert("Espera unos segundos antes de enviar otro reporte.");
+          return;
+        }
+        lastSubmitTs = Date.now();
+
+        btn.disabled = true;
+        statusEl.textContent = "Enviando...";
+        statusEl.className = "status-msg";
+
+        try {
+          let photoUrl = null;
+          if (photoFile) {
+            photoUrl = await uploadPhoto(photoFile);
+          }
+
+          const { error } = await supabaseClient.from("incidents").insert({
+            type,
+            source: "citizen",
+            description,
+            lat: selectedLat,
+            lng: selectedLng,
+            confidence: "low",
+            photo_url: photoUrl,
+            evidence_link: evidenceLink
+          });
+
+          if (error) {
+            console.error("Error insertando incidente:", error);
+            statusEl.textContent = "Error al enviar el reporte.";
+            statusEl.className = "status-msg status-err";
+          } else {
+            statusEl.textContent = "Reporte enviado.";
+            statusEl.className = "status-msg status-ok";
+
+            const newLat = selectedLat;
+            const newLng = selectedLng;
+
+            typeEl.value = "";
+            descEl.value = "";
+            evidenceEl.value = "";
+            photoEl.value = "";
+            selectedLat = null;
+            selectedLng = null;
+            document
+              .getElementById("map-pick-btn")
+              .classList.remove("picked");
+
+            if (tempPickMarker) {
+              map.removeLayer(tempPickMarker);
+              tempPickMarker = null;
+            }
+
+            allIncidents.unshift({
+              id: crypto.randomUUID(),
+              type,
+              source: "citizen",
+              description,
+              lat: newLat,
+              lng: newLng,
+              confidence: "low",
+              photo_url: photoUrl,
+              evidence_link: evidenceLink,
+              created_at: new Date().toISOString()
+            });
+            renderAll();
+            updateLiveBar();
+          }
+        } catch (e) {
+          console.error(e);
+          statusEl.textContent = "Error inesperado.";
+          statusEl.className = "status-msg status-err";
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      // ===== 9. MAPA: SELECCIONAR PUNTO =====
+      map.on("click", (e) => {
+        if (!pickMode) return;
+
+        selectedLat = e.latlng.lat;
+        selectedLng = e.latlng.lng;
+
+        if (!tempPickMarker) {
+          tempPickMarker = L.marker([selectedLat, selectedLng], {
+            icon: incidentIcon
+          }).addTo(map);
+        } else {
+          tempPickMarker.setLatLng([selectedLat, selectedLng]);
+          tempPickMarker.setIcon(incidentIcon);
+        }
+
+        const pickBtn = document.getElementById("map-pick-btn");
+        pickBtn.classList.add("picked");
+
+        pickMode = false;
+        pickOverlay.style.display = "none";
+        pickBackdrop.style.display = "none";
+      });
+
+      document
+        .getElementById("map-pick-btn")
+        .addEventListener("click", () => {
+          pickMode = true;
+          pickOverlay.style.display = "block";
+          pickBackdrop.style.display = "block";
+        });
+
+      document.getElementById("submit-btn").addEventListener("click", () => {
+        submitReport();
+      });
+
+      // ===== 10. TABS =====
+      const tabList = document.getElementById("tab-list");
+      const tabReport = document.getElementById("tab-report");
+      const incidentsListEl = document.getElementById("incidents-list");
+      const reportPanelEl = document.getElementById("report-panel");
+
+      tabList.addEventListener("click", () => {
+        tabList.classList.add("active");
+        tabReport.classList.remove("active");
+        incidentsListEl.style.display = "block";
+        reportPanelEl.style.display = "none";
+        reportPanelEl.classList.remove("visible");
+      });
+
+      tabReport.addEventListener("click", () => {
+        tabReport.classList.add("active");
+        tabList.classList.remove("active");
+        incidentsListEl.style.display = "none";
+        reportPanelEl.style.display = "flex";
+        reportPanelEl.classList.add("visible");
+      });
+
+      // ===== 11. FILTROS DE TIEMPO (solo visuales por ahora) =====
+      document.querySelectorAll(".filter-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".filter-btn")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          renderAll();
+        });
+      });
+
+      // ===== 12. BOTÓN "MI UBICACIÓN" =====
+      const locateControl = L.control({ position: "topright" });
+
+      locateControl.onAdd = function () {
+        const container = L.DomUtil.create(
+          "div",
+          "leaflet-bar leaflet-control"
+        );
+
+        const button = L.DomUtil.create("a", "locate-button", container);
+        button.href = "#";
+        button.title = "Ir a mi ubicación";
+        button.innerHTML = "📍";
+
+        L.DomEvent.on(button, "click", function (e) {
+          L.DomEvent.stopPropagation(e);
+          L.DomEvent.preventDefault(e);
+
+          map.locate({
+            setView: true,
+            maxZoom: 15,
+            enableHighAccuracy: true
+          });
+        });
+
+        return container;
+      };
+
+      locateControl.addTo(map);
+
+      map.on("locationfound", function (e) {
+        if (!userLocationMarker) {
+          userLocationMarker = L.marker(e.latlng).addTo(map);
+        } else {
+          userLocationMarker.setLatLng(e.latlng);
+        }
+        userLocationMarker.bindPopup("Estás aquí").openPopup();
+      });
+
+      map.on("locationerror", function (e) {
+        alert("No se pudo obtener tu ubicación: " + e.message);
+      });
+
+      // ===== 13. AVISO INICIAL (siempre mostrar) =====
+      const disclaimerOverlay = document.getElementById("disclaimer-overlay");
+      const disclaimerBtn = document.getElementById("disclaimer-accept-btn");
+
+      disclaimerOverlay.style.display = "flex";
+
+      disclaimerBtn.addEventListener("click", () => {
+        disclaimerOverlay.style.display = "none";
+      });
+
+      // ===== 14. INICIO =====
+      loadIncidents();
+    </script>
+  </body>
+</html>
