@@ -46,7 +46,6 @@
         overflow: hidden;
       }
 
-      /* Sutil brillo diagonal detrás del logo */
       header::before {
         content: "";
         position: absolute;
@@ -117,7 +116,6 @@
         opacity: 0.85;
       }
 
-      /* Barra EN VIVO */
       .live-bar {
         display: flex;
         align-items: center;
@@ -415,7 +413,6 @@
         display: none;
       }
 
-      /* Botón de "Mi ubicación" (Leaflet control) */
       .locate-button {
         background: #ffffff;
         border-radius: 4px;
@@ -437,7 +434,32 @@
         background: #e0e0e0;
       }
 
-      /* Modal de aviso inicial */
+      /* Botón flotante de menú móvil */
+      .mobile-toggle {
+        position: fixed;
+        bottom: 12px;
+        right: 12px;
+        z-index: 999;
+        background: #e53935;
+        color: #fff;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        display: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+      }
+
+      .mobile-toggle span {
+        margin-right: 4px;
+      }
+
+      .sidebar.hidden-mobile {
+        transform: translateY(-100%);
+        transition: transform 0.2s ease-out;
+      }
+
       #disclaimer-overlay {
         position: fixed;
         inset: 0;
@@ -524,15 +546,25 @@
         .main {
           flex-direction: column;
         }
+
         .sidebar {
           width: 100%;
-          max-height: 50%;
+          max-height: none;
+          order: 1;
+        }
+
+        .map-container {
+          order: 2;
+          height: 55vh;
+        }
+
+        .mobile-toggle {
+          display: block;
         }
       }
     </style>
   </head>
   <body>
-    <!-- AVISO INICIAL -->
     <div id="disclaimer-overlay">
       <div class="disclaimer-backdrop"></div>
       <div class="disclaimer-modal">
@@ -560,6 +592,11 @@
     </div>
 
     <div id="app">
+      <!-- Botón flotante de menú para móvil -->
+      <button id="mobile-toggle" class="mobile-toggle">
+        <span>📋</span> Menú
+      </button>
+
       <header>
         <div class="header-left">
           <h1>
@@ -580,7 +617,6 @@
         </div>
       </header>
 
-      <!-- Barra EN VIVO -->
       <div class="live-bar">
         <span class="live-dot"></span>
         <span class="live-text">EN VIVO</span>
@@ -676,14 +712,10 @@
       </div>
     </div>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- Supabase JS -->
     <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
 
     <script>
-      // ===== 1. CONFIGURA AQUÍ TUS DATOS DE SUPABASE =====
       const SUPABASE_URL = "https://hcpfhqbcjgdwfqoympni.supabase.co";
       const SUPABASE_ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjcGZocWJjamdkd2Zxb3ltcG5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzA5NDQsImV4cCI6MjA4NzQ0Njk0NH0.8pIzPhDXDRWeoJVxc3adomW-XXpIleO07dRV5-hmC2k";
@@ -693,8 +725,7 @@
         SUPABASE_ANON_KEY
       );
 
-      // ===== 2. MAPA =====
-      const map = L.map("map").setView([20.6736, -103.344], 11); // GDL
+      const map = L.map("map").setView([20.6736, -103.344], 11);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
@@ -708,7 +739,6 @@
       const baseShadowUrl =
         "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png";
 
-      // Pin azul para selección de ubicación
       const incidentIcon = new L.Icon({
         iconUrl: baseIconUrl,
         shadowUrl: baseShadowUrl,
@@ -718,7 +748,6 @@
         shadowSize: [41, 41]
       });
 
-      // ===== 3. ESTADO EN MEMORIA =====
       const INCIDENT_TYPES = {
         VEHICLE_FIRE: { label: "Vehículo incendiado" },
         ROAD_BLOCK: { label: "Bloqueo en vialidad" },
@@ -726,8 +755,6 @@
         SHOOTING: { label: "Balacera / enfrentamiento" },
         CRIME: { label: "Robo / secuestro / extorsión" },
         OTHER: { label: "Otro peligro" },
-
-        // Tipos viejos que ya tienes en la tabla
         BLOCK: { label: "Bloqueo en vialidad" },
         ROBBERY: { label: "Robo" }
       };
@@ -750,13 +777,11 @@
       let selectedLng = null;
       let lastSubmitTs = 0;
       let tempPickMarker = null;
+      let userLocationMarker = null;
 
       const pickOverlay = document.getElementById("pick-overlay");
       const pickBackdrop = document.getElementById("pick-backdrop");
 
-      let userLocationMarker = null;
-
-      // ===== 4. UTILIDADES =====
       function formatTimeAgo(ts) {
         if (!ts) return "";
         const diff = Date.now() - new Date(ts).getTime();
@@ -805,7 +830,6 @@
         el.textContent = `Actualizado: ${formatUpdatedTime(new Date())}`;
       }
 
-      // ===== 5. CARGAR INCIDENTES =====
       async function loadIncidents() {
         const { data, error } = await supabaseClient
           .from("incidents")
@@ -823,7 +847,6 @@
         updateLiveBar();
       }
 
-      // ===== 6. RENDER LISTA + MAPA (solo últimos 24h) =====
       function renderAll() {
         const listEl = document.getElementById("incidents-list");
         const countEl = document.getElementById("incident-count");
@@ -949,7 +972,6 @@
         countEl.textContent = visible.length;
       }
 
-      // ===== 7. SUBIR FOTO A STORAGE =====
       async function uploadPhoto(file) {
         if (!file) return null;
         const ext = file.name.split(".").pop();
@@ -977,7 +999,6 @@
         return pub?.publicUrl || null;
       }
 
-      // ===== 8. ENVIAR REPORTE =====
       async function submitReport() {
         const statusEl = document.getElementById("status-msg");
         const btn = document.getElementById("submit-btn");
@@ -1078,7 +1099,6 @@
         }
       }
 
-      // ===== 9. MAPA: SELECCIONAR PUNTO =====
       map.on("click", (e) => {
         if (!pickMode) return;
 
@@ -1114,7 +1134,6 @@
         submitReport();
       });
 
-      // ===== 10. TABS =====
       const tabList = document.getElementById("tab-list");
       const tabReport = document.getElementById("tab-report");
       const incidentsListEl = document.getElementById("incidents-list");
@@ -1136,7 +1155,6 @@
         reportPanelEl.classList.add("visible");
       });
 
-      // ===== 11. FILTROS DE TIEMPO (solo visuales por ahora) =====
       document.querySelectorAll(".filter-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           document
@@ -1147,7 +1165,6 @@
         });
       });
 
-      // ===== 12. BOTÓN "MI UBICACIÓN" =====
       const locateControl = L.control({ position: "topright" });
 
       locateControl.onAdd = function () {
@@ -1190,7 +1207,6 @@
         alert("No se pudo obtener tu ubicación: " + e.message);
       });
 
-      // ===== 13. AVISO INICIAL (siempre mostrar) =====
       const disclaimerOverlay = document.getElementById("disclaimer-overlay");
       const disclaimerBtn = document.getElementById("disclaimer-accept-btn");
 
@@ -1200,7 +1216,19 @@
         disclaimerOverlay.style.display = "none";
       });
 
-      // ===== 14. INICIO =====
+      // Toggle panel en móvil
+      const mobileToggle = document.getElementById("mobile-toggle");
+      const sidebarEl = document.querySelector(".sidebar");
+
+      if (mobileToggle && sidebarEl) {
+        mobileToggle.addEventListener("click", () => {
+          const isHidden = sidebarEl.classList.toggle("hidden-mobile");
+          mobileToggle.innerHTML = isHidden
+            ? "<span>📋</span> Menú"
+            : "<span>⬆️</span> Ocultar";
+        });
+      }
+
       loadIncidents();
     </script>
   </body>
