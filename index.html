@@ -5,10 +5,10 @@
   <title>Vigía Jalisco · Mapa ciudadano de incidentes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Favicon con emoji de foco/alerta centrado -->
+  <!-- Favicon con emoji de alerta 🚨 -->
   <link
     rel="icon"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='24' ry='24' fill='%230b0b0f'/%3E%3Ccircle cx='60' cy='46' r='26' fill='%23ffeb3b'/%3E%3Cpath d='M46 82h28v6a10 10 0 0 1-10 10H56a10 10 0 0 1-10-10z' fill='%23ffeb3b'/%3E%3Crect x='50' y='70' width='20' height='10' rx='3' ry='3' fill='%23fff59d'/%3E%3Ccircle cx='60' cy='46' r='10' fill='%230b0b0f' opacity='0.9'/%3E%3Cpath d='M60 22c-9.9 0-18 8.1-18 18 0 3.2.84 6.2 2.32 8.8C46 40 52 36 60 36s14 4 15.68 12.8A17.9 17.9 0 0 0 78 40c0-9.9-8.1-18-18-18z' fill='%23fff59d' opacity='0.8'/%3E%3Ctext x='60' y='108' text-anchor='middle' font-size='18' fill='%23ffffff' font-family='system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' x='0.1em' font-size='90'>🚨</text></svg>"
   />
 
   <!-- Leaflet CSS -->
@@ -275,16 +275,6 @@
     .tag-confidence-high {
       border-color: #4caf50;
       color: #4caf50;
-    }
-
-    .tag-source-citizen {
-      border-color: #42a5f5;
-      color: #42a5f5;
-    }
-
-    .tag-source-media {
-      border-color: #ab47bc;
-      color: #ab47bc;
     }
 
     .report-panel {
@@ -940,14 +930,14 @@
     );
     map.fitBounds(jaliscoBounds, { maxZoom: 8 });
 
-    // Base OSM estándar; aquí puedes volver a poner Carto Dark si quieres
+    // Carto Dark Matter (oscuro tipo navegación)
     L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-  {
-    maxZoom: 19,
-    attribution: "&copy; OpenStreetMap, © Carto"
-  }
-).addTo(map);
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap, © Carto"
+      }
+    ).addTo(map);
 
     let markersLayer = L.layerGroup().addTo(map);
 
@@ -1132,16 +1122,6 @@
           inc.confidence === "high" ? "Alta confianza" : "Sin confirmar";
         tags.appendChild(confTag);
 
-        const sourceTag = document.createElement("span");
-        sourceTag.className =
-          "tag-pill " +
-          (inc.source === "citizen"
-            ? "tag-source-citizen"
-            : "tag-source-media");
-        sourceTag.textContent =
-          inc.source === "citizen" ? "Ciudadano" : inc.source || "Otro";
-        tags.appendChild(sourceTag);
-
         if (inc.photo_url || inc.evidence_link) {
           const evTag = document.createElement("span");
           evTag.className = "tag-pill";
@@ -1187,7 +1167,7 @@
           }</p>` +
           `<p style="font-size:11px;color:#aaa;">${formatTimeAgo(
             inc.created_at
-          )} · Fuente: ${inc.source}</p>`;
+          )}</p>`;
 
         if (inc.photo_url) {
           popupHtml +=
