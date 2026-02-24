@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Viga Jalisco · Mapa ciudadano de incidentes</title>
+  <title>Vigía Jalisco · Mapa ciudadano de incidentes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Favicon con emoji de foco/alerta centrado -->
@@ -691,7 +691,7 @@
     <header>
       <div class="header-left">
         <h1>
-          <span class="icon">📍</span>
+          <span class="icon">🚨</span>
           <span>Mapa ciudadano de incidentes</span>
         </h1>
         <p>
@@ -700,8 +700,8 @@
       </div>
       <div class="brand-badge">
         <div class="brand-badge-main">
-          <span class="icon">🕯️</span>
-          <span>Viga Jalisco</span>
+          <span class="icon">🛰️</span>
+          <span>Vigía Jalisco</span>
         </div>
         <div class="brand-badge-sub">Mapa ciudadano en tiempo real</div>
       </div>
@@ -743,12 +743,12 @@
             <div class="field-label">Tipo de incidente</div>
             <select id="incident-type">
               <option value="">Selecciona...</option>
-              <option value="FIRE">Incendio</option>
-              <option value="ROADBLOCK">Bloqueo en vialidad</option>
-              <option value="TIRESPIKES">Poncha llantas / clavos</option>
-              <option value="SHOOTING">Balacera / enfrentamiento</option>
-              <option value="CRIME">Robo / secuestro / extorsión</option>
-              <option value="OTHER">Otro peligro</option>
+              <option value="FIRE">🔥 Incendio</option>
+              <option value="ROADBLOCK">🛑 Bloqueo en vialidad</option>
+              <option value="TIRESPIKES">🛞 Poncha llantas / clavos</option>
+              <option value="SHOOTING">💥 Balacera / enfrentamiento</option>
+              <option value="CRIME">🕵️‍♂️ Robo / secuestro / extorsión</option>
+              <option value="OTHER">⚠️ Otro peligro</option>
             </select>
           </div>
 
@@ -803,8 +803,7 @@
       <div class="map-container">
         <div id="pick-backdrop"></div>
         <div id="pick-overlay">
-          Haz click donde ocurrió el incidente
-          <br />
+          📍 Haz click donde ocurrió el incidente<br />
           <span style="font-size: 11px">Click en cualquier lugar del mapa</span>
         </div>
         <div id="map"></div>
@@ -815,8 +814,8 @@
     <div id="report-sheet" class="report-sheet">
       <div class="report-sheet-header">
         <div class="report-sheet-header-title">
-          <span>🕯️</span>
-          <span>Viga Jalisco</span>
+          <span>🛰️</span>
+          <span>Vigía Jalisco</span>
         </div>
         <button
           id="report-sheet-close"
@@ -849,12 +848,12 @@
             <div class="field-label">Tipo de incidente</div>
             <select id="incident-type-mobile">
               <option value="">Selecciona...</option>
-              <option value="FIRE">Incendio</option>
-              <option value="ROADBLOCK">Bloqueo en vialidad</option>
-              <option value="TIRESPIKES">Poncha llantas / clavos</option>
-              <option value="SHOOTING">Balacera / enfrentamiento</option>
-              <option value="CRIME">Robo / secuestro / extorsión</option>
-              <option value="OTHER">Otro peligro</option>
+              <option value="FIRE">🔥 Incendio</option>
+              <option value="ROADBLOCK">🛑 Bloqueo en vialidad</option>
+              <option value="TIRESPIKES">🛞 Poncha llantas / clavos</option>
+              <option value="SHOOTING">💥 Balacera / enfrentamiento</option>
+              <option value="CRIME">🕵️‍♂️ Robo / secuestro / extorsión</option>
+              <option value="OTHER">⚠️ Otro peligro</option>
             </select>
           </div>
 
@@ -941,6 +940,7 @@
     );
     map.fitBounds(jaliscoBounds, { maxZoom: 8 });
 
+    // Base OSM estándar; aquí puedes volver a poner Carto Dark si quieres
     L.tileLayer(
   "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
   {
@@ -978,15 +978,15 @@
     };
 
     const TYPE_EMOJIS = {
-      FIRE: "🔥",
+      FIRE:        "🔥",
       VEHICLEFIRE: "🔥",
-      ROADBLOCK: "⛔️",
-      TIRESPIKES: "🛞",
-      SHOOTING: "💥",
-      CRIME: "🧨",
-      OTHER: "⚠️",
-      BLOCK: "⛔️",
-      ROBBERY: "🧨"
+      ROADBLOCK:   "🛑",
+      TIRESPIKES:  "🛞",
+      SHOOTING:    "💥",
+      CRIME:       "🕵️‍♂️",
+      OTHER:       "⚠️",
+      BLOCK:       "🛑",
+      ROBBERY:     "🕵️‍♂️"
     };
 
     const MINUTES = 60 * 1000;
@@ -1460,7 +1460,7 @@
       const button = L.DomUtil.create("a", "locate-button", container);
       button.href = "#";
       button.title = "Ir a mi ubicación";
-      button.innerHTML = "◎";
+      button.innerHTML = "📍";
 
       L.DomEvent.on(button, "click", function (e) {
         L.DomEvent.stopPropagation(e);
