@@ -11,7 +11,6 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ctext x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='70'%3E💡%3C/text%3E%3C/svg%3E"
     />
 
-    <!-- Leaflet CSS -->
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -287,11 +286,6 @@
         color: #ab47bc;
       }
 
-      .tag-expired {
-        border-color: #757575;
-        color: #757575;
-      }
-
       .report-panel {
         padding: 10px;
         display: none;
@@ -434,30 +428,27 @@
         background: #e0e0e0;
       }
 
-      /* Botón flotante de menú móvil */
-      .mobile-toggle {
-        position: fixed;
-        bottom: 12px;
-        right: 12px;
-        z-index: 999;
-        background: #e53935;
-        color: #fff;
-        border-radius: 999px;
-        padding: 8px 14px;
-        font-size: 13px;
+      /* Footer de crédito escritorio */
+      .made-by {
+        padding: 6px 10px 10px;
+        font-size: 11px;
+        color: #bbbbbb;
+        border-top: 1px solid #222;
+      }
+
+      .made-by span {
         font-weight: 600;
-        border: none;
-        display: none;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        color: #ffffff;
       }
 
-      .mobile-toggle span {
-        margin-right: 4px;
+      .made-by a {
+        color: #ffb300;
+        text-decoration: none;
+        font-weight: 600;
       }
 
-      .sidebar.hidden-mobile {
-        transform: translateY(-100%);
-        transition: transform 0.2s ease-out;
+      .made-by a:hover {
+        text-decoration: underline;
       }
 
       #disclaimer-overlay {
@@ -528,6 +519,27 @@
         letter-spacing: 0.5px;
       }
 
+      /* Créditos en el panel móvil */
+      .report-sheet-footer {
+        padding: 6px 10px 8px;
+        font-size: 11px;
+        color: #bbbbbb;
+        border-top: 1px solid #222;
+      }
+      .report-sheet-footer span {
+        font-weight: 600;
+        color: #ffffff;
+      }
+      .report-sheet-footer a {
+        color: #ffb300;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .report-sheet-footer a:hover {
+        text-decoration: underline;
+      }
+
+      /* Móvil: mapa a pantalla completa, panel deslizante */
       @media (max-width: 768px) {
         header {
           flex-direction: column;
@@ -548,23 +560,78 @@
         }
 
         .sidebar {
-          width: 100%;
-          max-height: none;
-          order: 1;
+          display: none;
         }
 
         .map-container {
-          order: 2;
-          height: 55vh;
+          flex: 1;
+          height: calc(100vh - 96px);
         }
 
-        .mobile-toggle {
-          display: block;
+        .report-sheet {
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          max-height: 75vh;
+          background: #111;
+          border-top-left-radius: 14px;
+          border-top-right-radius: 14px;
+          box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.7);
+          transform: translateY(100%);
+          transition: transform 0.25s ease-out;
+          z-index: 9000;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .report-sheet.open {
+          transform: translateY(0);
+        }
+
+        .report-sheet-header {
+          padding: 8px 12px;
+          border-bottom: 1px solid #333;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 13px;
+        }
+
+        .report-sheet-header-title {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-weight: 600;
+        }
+
+        .report-sheet-body {
+          padding: 8px 10px 10px;
+          overflow-y: auto;
+        }
+
+        .report-fab {
+          position: fixed;
+          right: 12px;
+          bottom: 12px;
+          z-index: 8000;
+          background: #e53935;
+          color: #fff;
+          border: none;
+          border-radius: 999px;
+          padding: 10px 16px;
+          font-size: 13px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
         }
       }
     </style>
   </head>
   <body>
+    <!-- Aviso inicial -->
     <div id="disclaimer-overlay">
       <div class="disclaimer-backdrop"></div>
       <div class="disclaimer-modal">
@@ -592,11 +659,6 @@
     </div>
 
     <div id="app">
-      <!-- Botón flotante de menú para móvil -->
-      <button id="mobile-toggle" class="mobile-toggle">
-        <span>📋</span> Menú
-      </button>
-
       <header>
         <div class="header-left">
           <h1>
@@ -626,6 +688,7 @@
       </div>
 
       <div class="main">
+        <!-- Sidebar escritorio -->
         <aside class="sidebar">
           <div class="sidebar-header">
             <span>Incidentes reportados</span>
@@ -699,6 +762,18 @@
 
             <div class="status-msg" id="status-msg"></div>
           </div>
+
+          <!-- Crédito en escritorio -->
+          <div class="made-by">
+            Hecho por <span>Arnulfo Correa</span> –
+            <a
+              href="https://www.instagram.com/rufoco"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              📷 Rufoco
+            </a>
+          </div>
         </aside>
 
         <div class="map-container">
@@ -711,6 +786,88 @@
         </div>
       </div>
     </div>
+
+    <!-- Panel de reporte móvil -->
+    <div id="report-sheet" class="report-sheet">
+      <div class="report-sheet-header">
+        <div class="report-sheet-header-title">
+          <span>📢</span>
+          <span>Enviar reporte</span>
+        </div>
+        <button
+          id="report-sheet-close"
+          style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;"
+        >
+          ✕
+        </button>
+      </div>
+      <div class="report-sheet-body">
+        <div class="field-group">
+          <div class="field-label">Tipo de incidente</div>
+          <select id="incident-type-mobile">
+            <option value="">Selecciona...</option>
+            <option value="VEHICLE_FIRE">🔥 Vehículo incendiado</option>
+            <option value="ROAD_BLOCK">🛑 Bloqueo en vialidad</option>
+            <option value="TIRE_SPIKES">🛞 Poncha llantas / clavos</option>
+            <option value="SHOOTING">💥 Balacera / enfrentamiento</option>
+            <option value="CRIME">🕵️‍♂️ Robo / secuestro / extorsión</option>
+            <option value="OTHER">⚠️ Otro peligro</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Descripción (opcional)</div>
+          <textarea
+            id="incident-desc-mobile"
+            maxlength="500"
+            placeholder="Breve descripción..."
+          ></textarea>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Link de evidencia (opcional)</div>
+          <input
+            type="text"
+            id="incident-evidence-mobile"
+            placeholder="Enlace a foto/video/noticia"
+          />
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Foto (opcional)</div>
+          <input type="file" id="incident-photo-mobile" accept="image/*" />
+        </div>
+
+        <div class="field-group">
+          <button type="button" class="map-pick-btn" id="map-pick-btn-mobile">
+            📍 Toca aquí y luego en el mapa para elegir ubicación
+          </button>
+        </div>
+
+        <button class="submit-btn" id="submit-btn-mobile">
+          Enviar reporte
+        </button>
+
+        <div class="status-msg" id="status-msg-mobile"></div>
+
+        <!-- Crédito en panel móvil -->
+        <div class="report-sheet-footer">
+          Hecho por <span>Arnulfo Correa</span> –
+          <a
+            href="https://www.instagram.com/rufoco"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            📷 Rufoco
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón flotante para abrir panel móvil -->
+    <button id="report-fab" class="report-fab">
+      <span>📢</span> Reportar
+    </button>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
@@ -852,7 +1009,9 @@
         const countEl = document.getElementById("incident-count");
         markersLayer.clearLayers();
 
-        listEl.innerHTML = "";
+        if (listEl && countEl) {
+          listEl.innerHTML = "";
+        }
 
         const visible = allIncidents
           .map((inc) => ({
@@ -867,73 +1026,79 @@
               !isExpired(inc)
           );
 
-        visible.forEach((inc) => {
-          const item = document.createElement("div");
-          item.className = "incident-item";
+        if (listEl && countEl) {
+          visible.forEach((inc) => {
+            const item = document.createElement("div");
+            item.className = "incident-item";
 
-          const title = document.createElement("div");
-          title.className = "incident-title";
-          title.textContent = getTypeLabel(inc.type);
-          item.appendChild(title);
+            const title = document.createElement("div");
+            title.className = "incident-title";
+            title.textContent = getTypeLabel(inc.type);
+            item.appendChild(title);
 
-          if (inc.description && inc.description !== "EMPTY") {
-            const desc = document.createElement("div");
-            desc.textContent = inc.description;
-            desc.style.fontSize = "11px";
-            desc.style.color = "#ccc";
-            item.appendChild(desc);
-          }
-
-          const time = document.createElement("div");
-          time.className = "incident-time";
-          time.textContent = formatTimeAgo(inc.created_at);
-          item.appendChild(time);
-
-          const tags = document.createElement("div");
-          tags.className = "incident-tags";
-
-          const typeTag = document.createElement("span");
-          typeTag.className = "tag-pill tag-type";
-          typeTag.textContent = getTypeLabel(inc.type);
-          tags.appendChild(typeTag);
-
-          const confTag = document.createElement("span");
-          confTag.className = `tag-pill ${
-            inc.confidence === "high"
-              ? "tag-confidence-high"
-              : "tag-confidence-low"
-          }`;
-          confTag.textContent =
-            inc.confidence === "high" ? "Alta confianza" : "Sin confirmar";
-          tags.appendChild(confTag);
-
-          const sourceTag = document.createElement("span");
-          sourceTag.className = `tag-pill ${
-            inc.source === "citizen"
-              ? "tag-source-citizen"
-              : "tag-source-media"
-          }`;
-          sourceTag.textContent =
-            inc.source === "citizen" ? "Ciudadano" : inc.source;
-          tags.appendChild(sourceTag);
-
-          if (inc.photo_url || inc.evidence_link) {
-            const evTag = document.createElement("span");
-            evTag.className = "tag-pill";
-            evTag.textContent = "Con evidencia";
-            tags.appendChild(evTag);
-          }
-
-          item.appendChild(tags);
-
-          item.addEventListener("click", () => {
-            if (Number.isFinite(inc.lat) && Number.isFinite(inc.lng)) {
-              map.setView([inc.lat, inc.lng], 13);
+            if (inc.description && inc.description !== "EMPTY") {
+              const desc = document.createElement("div");
+              desc.textContent = inc.description;
+              desc.style.fontSize = "11px";
+              desc.style.color = "#ccc";
+              item.appendChild(desc);
             }
+
+            const time = document.createElement("div");
+            time.className = "incident-time";
+            time.textContent = formatTimeAgo(inc.created_at);
+            item.appendChild(time);
+
+            const tags = document.createElement("div");
+            tags.className = "incident-tags";
+
+            const typeTag = document.createElement("span");
+            typeTag.className = "tag-pill tag-type";
+            typeTag.textContent = getTypeLabel(inc.type);
+            tags.appendChild(typeTag);
+
+            const confTag = document.createElement("span");
+            confTag.className = `tag-pill ${
+              inc.confidence === "high"
+                ? "tag-confidence-high"
+                : "tag-confidence-low"
+            }`;
+            confTag.textContent =
+              inc.confidence === "high" ? "Alta confianza" : "Sin confirmar";
+            tags.appendChild(confTag);
+
+            const sourceTag = document.createElement("span");
+            sourceTag.className = `tag-pill ${
+              inc.source === "citizen"
+                ? "tag-source-citizen"
+                : "tag-source-media"
+            }`;
+            sourceTag.textContent =
+              inc.source === "citizen" ? "Ciudadano" : inc.source;
+            tags.appendChild(sourceTag);
+
+            if (inc.photo_url || inc.evidence_link) {
+              const evTag = document.createElement("span");
+              evTag.className = "tag-pill";
+              evTag.textContent = "Con evidencia";
+              tags.appendChild(evTag);
+            }
+
+            item.appendChild(tags);
+
+            item.addEventListener("click", () => {
+              if (Number.isFinite(inc.lat) && Number.isFinite(inc.lng)) {
+                map.setView([inc.lat, inc.lng], 13);
+              }
+            });
+
+            listEl.appendChild(item);
           });
 
-          listEl.appendChild(item);
+          countEl.textContent = visible.length;
+        }
 
+        visible.forEach((inc) => {
           const emojiIcon = L.divIcon({
             className: "emoji-marker",
             html: `<div style="
@@ -968,8 +1133,6 @@
           marker.bindPopup(popupHtml);
           markersLayer.addLayer(marker);
         });
-
-        countEl.textContent = visible.length;
       }
 
       async function uploadPhoto(file) {
@@ -999,20 +1162,14 @@
         return pub?.publicUrl || null;
       }
 
-      async function submitReport() {
-        const statusEl = document.getElementById("status-msg");
-        const btn = document.getElementById("submit-btn");
-
-        const typeEl = document.getElementById("incident-type");
-        const descEl = document.getElementById("incident-desc");
-        const evidenceEl = document.getElementById("incident-evidence");
-        const photoEl = document.getElementById("incident-photo");
-
-        const type = typeEl.value;
-        const description = (descEl.value || "").trim().slice(0, 500);
-        const evidenceLink = (evidenceEl.value || "").trim() || null;
-        const photoFile = photoEl.files[0];
-
+      async function submitReportCommon({
+        type,
+        description,
+        evidenceLink,
+        photoFile,
+        statusEl,
+        buttonEl
+      }) {
         if (!type) {
           alert("Selecciona un tipo de incidente.");
           return;
@@ -1028,7 +1185,7 @@
         }
         lastSubmitTs = Date.now();
 
-        btn.disabled = true;
+        buttonEl.disabled = true;
         statusEl.textContent = "Enviando...";
         statusEl.className = "status-msg";
 
@@ -1060,15 +1217,8 @@
             const newLat = selectedLat;
             const newLng = selectedLng;
 
-            typeEl.value = "";
-            descEl.value = "";
-            evidenceEl.value = "";
-            photoEl.value = "";
             selectedLat = null;
             selectedLng = null;
-            document
-              .getElementById("map-pick-btn")
-              .classList.remove("picked");
 
             if (tempPickMarker) {
               map.removeLayer(tempPickMarker);
@@ -1095,10 +1245,62 @@
           statusEl.textContent = "Error inesperado.";
           statusEl.className = "status-msg status-err";
         } finally {
-          btn.disabled = false;
+          buttonEl.disabled = false;
         }
       }
 
+      // Formulario escritorio
+      const submitBtn = document.getElementById("submit-btn");
+      if (submitBtn) {
+        submitBtn.addEventListener("click", () => {
+          const type = document.getElementById("incident-type").value;
+          const desc = document
+            .getElementById("incident-desc")
+            .value.trim()
+            .slice(0, 500);
+          const evidence = document
+            .getElementById("incident-evidence")
+            .value.trim();
+          const photoFile = document.getElementById("incident-photo").files[0];
+          const statusEl = document.getElementById("status-msg");
+
+          submitReportCommon({
+            type,
+            description: desc,
+            evidenceLink: evidence || null,
+            photoFile,
+            statusEl,
+            buttonEl: submitBtn
+          });
+        });
+      }
+
+      // Formulario móvil
+      const submitBtnMobile = document.getElementById("submit-btn-mobile");
+      submitBtnMobile.addEventListener("click", () => {
+        const type = document.getElementById("incident-type-mobile").value;
+        const desc = document
+          .getElementById("incident-desc-mobile")
+          .value.trim()
+          .slice(0, 500);
+        const evidence = document
+          .getElementById("incident-evidence-mobile")
+          .value.trim();
+        const photoFile =
+          document.getElementById("incident-photo-mobile").files[0];
+        const statusEl = document.getElementById("status-msg-mobile");
+
+        submitReportCommon({
+          type,
+          description: desc,
+          evidenceLink: evidence || null,
+          photoFile,
+          statusEl,
+          buttonEl: submitBtnMobile
+        });
+      });
+
+      // Selección de punto
       map.on("click", (e) => {
         if (!pickMode) return;
 
@@ -1114,46 +1316,48 @@
           tempPickMarker.setIcon(incidentIcon);
         }
 
-        const pickBtn = document.getElementById("map-pick-btn");
-        pickBtn.classList.add("picked");
-
         pickMode = false;
         pickOverlay.style.display = "none";
         pickBackdrop.style.display = "none";
       });
 
-      document
-        .getElementById("map-pick-btn")
-        .addEventListener("click", () => {
-          pickMode = true;
-          pickOverlay.style.display = "block";
-          pickBackdrop.style.display = "block";
-        });
+      function startPick() {
+        pickMode = true;
+        pickOverlay.style.display = "block";
+        pickBackdrop.style.display = "block";
+      }
 
-      document.getElementById("submit-btn").addEventListener("click", () => {
-        submitReport();
-      });
+      const mapPickBtnDesktop = document.getElementById("map-pick-btn");
+      if (mapPickBtnDesktop) {
+        mapPickBtnDesktop.addEventListener("click", startPick);
+      }
 
+      const mapPickBtnMobile = document.getElementById("map-pick-btn-mobile");
+      mapPickBtnMobile.addEventListener("click", startPick);
+
+      // Tabs escritorio
       const tabList = document.getElementById("tab-list");
       const tabReport = document.getElementById("tab-report");
       const incidentsListEl = document.getElementById("incidents-list");
       const reportPanelEl = document.getElementById("report-panel");
 
-      tabList.addEventListener("click", () => {
-        tabList.classList.add("active");
-        tabReport.classList.remove("active");
-        incidentsListEl.style.display = "block";
-        reportPanelEl.style.display = "none";
-        reportPanelEl.classList.remove("visible");
-      });
+      if (tabList && tabReport) {
+        tabList.addEventListener("click", () => {
+          tabList.classList.add("active");
+          tabReport.classList.remove("active");
+          incidentsListEl.style.display = "block";
+          reportPanelEl.style.display = "none";
+          reportPanelEl.classList.remove("visible");
+        });
 
-      tabReport.addEventListener("click", () => {
-        tabReport.classList.add("active");
-        tabList.classList.remove("active");
-        incidentsListEl.style.display = "none";
-        reportPanelEl.style.display = "flex";
-        reportPanelEl.classList.add("visible");
-      });
+        tabReport.addEventListener("click", () => {
+          tabReport.classList.add("active");
+          tabList.classList.remove("active");
+          incidentsListEl.style.display = "none";
+          reportPanelEl.style.display = "flex";
+          reportPanelEl.classList.add("visible");
+        });
+      }
 
       document.querySelectorAll(".filter-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -1165,6 +1369,7 @@
         });
       });
 
+      // Botón mi ubicación
       const locateControl = L.control({ position: "topright" });
 
       locateControl.onAdd = function () {
@@ -1207,6 +1412,7 @@
         alert("No se pudo obtener tu ubicación: " + e.message);
       });
 
+      // Aviso inicial
       const disclaimerOverlay = document.getElementById("disclaimer-overlay");
       const disclaimerBtn = document.getElementById("disclaimer-accept-btn");
 
@@ -1216,18 +1422,20 @@
         disclaimerOverlay.style.display = "none";
       });
 
-      // Toggle panel en móvil
-      const mobileToggle = document.getElementById("mobile-toggle");
-      const sidebarEl = document.querySelector(".sidebar");
+      // Sheet móvil
+      const reportSheet = document.getElementById("report-sheet");
+      const reportFab = document.getElementById("report-fab");
+      const reportSheetClose = document.getElementById("report-sheet-close");
 
-      if (mobileToggle && sidebarEl) {
-        mobileToggle.addEventListener("click", () => {
-          const isHidden = sidebarEl.classList.toggle("hidden-mobile");
-          mobileToggle.innerHTML = isHidden
-            ? "<span>📋</span> Menú"
-            : "<span>⬆️</span> Ocultar";
-        });
+      function openSheet() {
+        reportSheet.classList.add("open");
       }
+      function closeSheet() {
+        reportSheet.classList.remove("open");
+      }
+
+      reportFab.addEventListener("click", openSheet);
+      reportSheetClose.addEventListener("click", closeSheet);
 
       loadIncidents();
     </script>
