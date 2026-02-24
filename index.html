@@ -428,7 +428,6 @@
         background: #e0e0e0;
       }
 
-      /* Footer de crédito escritorio */
       .made-by {
         padding: 6px 10px 10px;
         font-size: 11px;
@@ -519,27 +518,28 @@
         letter-spacing: 0.5px;
       }
 
-      /* Créditos en el panel móvil */
       .report-sheet-footer {
         padding: 6px 10px 8px;
         font-size: 11px;
         color: #bbbbbb;
         border-top: 1px solid #222;
       }
+
       .report-sheet-footer span {
         font-weight: 600;
         color: #ffffff;
       }
+
       .report-sheet-footer a {
         color: #ffb300;
         text-decoration: none;
         font-weight: 600;
       }
+
       .report-sheet-footer a:hover {
         text-decoration: underline;
       }
 
-      /* Móvil: mapa a pantalla completa, panel deslizante */
       @media (max-width: 768px) {
         header {
           flex-direction: column;
@@ -605,9 +605,30 @@
           font-weight: 600;
         }
 
+        .report-sheet-tabs {
+          display: flex;
+          border-bottom: 1px solid #333;
+        }
+
+        .report-sheet-tab {
+          flex: 1;
+          padding: 6px 0;
+          text-align: center;
+          font-size: 11px;
+          cursor: pointer;
+          color: #aaa;
+          border-bottom: 2px solid transparent;
+        }
+
+        .report-sheet-tab.active {
+          color: #fff;
+          border-bottom-color: #e53935;
+        }
+
         .report-sheet-body {
           padding: 8px 10px 10px;
           overflow-y: auto;
+          flex: 1;
         }
 
         .report-fab {
@@ -626,6 +647,10 @@
           align-items: center;
           gap: 6px;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .mobile-incidents-list {
+          max-height: none;
         }
       }
     </style>
@@ -763,7 +788,6 @@
             <div class="status-msg" id="status-msg"></div>
           </div>
 
-          <!-- Crédito en escritorio -->
           <div class="made-by">
             Hecho por <span>Arnulfo Correa</span> –
             <a
@@ -787,12 +811,12 @@
       </div>
     </div>
 
-    <!-- Panel de reporte móvil -->
+    <!-- Panel móvil: pestañas Mapa / Reportar -->
     <div id="report-sheet" class="report-sheet">
       <div class="report-sheet-header">
         <div class="report-sheet-header-title">
-          <span>📢</span>
-          <span>Enviar reporte</span>
+          <span>🛰️</span>
+          <span>Vigía Jalisco</span>
         </div>
         <button
           id="report-sheet-close"
@@ -801,56 +825,70 @@
           ✕
         </button>
       </div>
+
+      <div class="report-sheet-tabs">
+        <div id="sheet-tab-map" class="report-sheet-tab active">🗺️ Mapa</div>
+        <div id="sheet-tab-report" class="report-sheet-tab">📢 Reportar</div>
+      </div>
+
       <div class="report-sheet-body">
-        <div class="field-group">
-          <div class="field-label">Tipo de incidente</div>
-          <select id="incident-type-mobile">
-            <option value="">Selecciona...</option>
-            <option value="VEHICLE_FIRE">🔥 Vehículo incendiado</option>
-            <option value="ROAD_BLOCK">🛑 Bloqueo en vialidad</option>
-            <option value="TIRE_SPIKES">🛞 Poncha llantas / clavos</option>
-            <option value="SHOOTING">💥 Balacera / enfrentamiento</option>
-            <option value="CRIME">🕵️‍♂️ Robo / secuestro / extorsión</option>
-            <option value="OTHER">⚠️ Otro peligro</option>
-          </select>
+        <!-- Contenido pestaña MAPA (lista móvil) -->
+        <div id="sheet-view-map">
+          <div class="field-label" style="margin-bottom:4px;">Incidentes reportados</div>
+          <div class="incidents-list mobile-incidents-list" id="mobile-incidents-list"></div>
         </div>
 
-        <div class="field-group">
-          <div class="field-label">Descripción (opcional)</div>
-          <textarea
-            id="incident-desc-mobile"
-            maxlength="500"
-            placeholder="Breve descripción..."
-          ></textarea>
-        </div>
+        <!-- Contenido pestaña REPORTAR -->
+        <div id="sheet-view-report" style="display:none;">
+          <div class="field-group">
+            <div class="field-label">Tipo de incidente</div>
+            <select id="incident-type-mobile">
+              <option value="">Selecciona...</option>
+              <option value="VEHICLE_FIRE">🔥 Vehículo incendiado</option>
+              <option value="ROAD_BLOCK">🛑 Bloqueo en vialidad</option>
+              <option value="TIRE_SPIKES">🛞 Poncha llantas / clavos</option>
+              <option value="SHOOTING">💥 Balacera / enfrentamiento</option>
+              <option value="CRIME">🕵️‍♂️ Robo / secuestro / extorsión</option>
+              <option value="OTHER">⚠️ Otro peligro</option>
+            </select>
+          </div>
 
-        <div class="field-group">
-          <div class="field-label">Link de evidencia (opcional)</div>
-          <input
-            type="text"
-            id="incident-evidence-mobile"
-            placeholder="Enlace a foto/video/noticia"
-          />
-        </div>
+          <div class="field-group">
+            <div class="field-label">Descripción (opcional)</div>
+            <textarea
+              id="incident-desc-mobile"
+              maxlength="500"
+              placeholder="Breve descripción..."
+            ></textarea>
+          </div>
 
-        <div class="field-group">
-          <div class="field-label">Foto (opcional)</div>
-          <input type="file" id="incident-photo-mobile" accept="image/*" />
-        </div>
+          <div class="field-group">
+            <div class="field-label">Link de evidencia (opcional)</div>
+            <input
+              type="text"
+              id="incident-evidence-mobile"
+              placeholder="Enlace a foto/video/noticia"
+            />
+          </div>
 
-        <div class="field-group">
-          <button type="button" class="map-pick-btn" id="map-pick-btn-mobile">
-            📍 Toca aquí y luego en el mapa para elegir ubicación
+          <div class="field-group">
+            <div class="field-label">Foto (opcional)</div>
+            <input type="file" id="incident-photo-mobile" accept="image/*" />
+          </div>
+
+          <div class="field-group">
+            <button type="button" class="map-pick-btn" id="map-pick-btn-mobile">
+              📍 Toca aquí y luego en el mapa para elegir ubicación
+            </button>
+          </div>
+
+          <button class="submit-btn" id="submit-btn-mobile">
+            Enviar reporte
           </button>
+
+          <div class="status-msg" id="status-msg-mobile"></div>
         </div>
 
-        <button class="submit-btn" id="submit-btn-mobile">
-          Enviar reporte
-        </button>
-
-        <div class="status-msg" id="status-msg-mobile"></div>
-
-        <!-- Crédito en panel móvil -->
         <div class="report-sheet-footer">
           Hecho por <span>Arnulfo Correa</span> –
           <a
@@ -864,9 +902,9 @@
       </div>
     </div>
 
-    <!-- Botón flotante para abrir panel móvil -->
+    <!-- Botón flotante móvil -->
     <button id="report-fab" class="report-fab">
-      <span>📢</span> Reportar
+      <span>📋</span> Mapa / Reportar
     </button>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1006,12 +1044,12 @@
 
       function renderAll() {
         const listEl = document.getElementById("incidents-list");
+        const mobileListEl = document.getElementById("mobile-incidents-list");
         const countEl = document.getElementById("incident-count");
         markersLayer.clearLayers();
 
-        if (listEl && countEl) {
-          listEl.innerHTML = "";
-        }
+        if (listEl) listEl.innerHTML = "";
+        if (mobileListEl) mobileListEl.innerHTML = "";
 
         const visible = allIncidents
           .map((inc) => ({
@@ -1026,79 +1064,80 @@
               !isExpired(inc)
           );
 
-        if (listEl && countEl) {
-          visible.forEach((inc) => {
-            const item = document.createElement("div");
-            item.className = "incident-item";
+        if (countEl) countEl.textContent = visible.length;
 
-            const title = document.createElement("div");
-            title.className = "incident-title";
-            title.textContent = getTypeLabel(inc.type);
-            item.appendChild(title);
+        const appendIncidentItem = (container, inc) => {
+          const item = document.createElement("div");
+          item.className = "incident-item";
 
-            if (inc.description && inc.description !== "EMPTY") {
-              const desc = document.createElement("div");
-              desc.textContent = inc.description;
-              desc.style.fontSize = "11px";
-              desc.style.color = "#ccc";
-              item.appendChild(desc);
+          const title = document.createElement("div");
+          title.className = "incident-title";
+          title.textContent = getTypeLabel(inc.type);
+          item.appendChild(title);
+
+          if (inc.description && inc.description !== "EMPTY") {
+            const desc = document.createElement("div");
+            desc.textContent = inc.description;
+            desc.style.fontSize = "11px";
+            desc.style.color = "#ccc";
+            item.appendChild(desc);
+          }
+
+          const time = document.createElement("div");
+          time.className = "incident-time";
+          time.textContent = formatTimeAgo(inc.created_at);
+          item.appendChild(time);
+
+          const tags = document.createElement("div");
+          tags.className = "incident-tags";
+
+          const typeTag = document.createElement("span");
+          typeTag.className = "tag-pill tag-type";
+          typeTag.textContent = getTypeLabel(inc.type);
+          tags.appendChild(typeTag);
+
+          const confTag = document.createElement("span");
+          confTag.className = `tag-pill ${
+            inc.confidence === "high"
+              ? "tag-confidence-high"
+              : "tag-confidence-low"
+          }`;
+          confTag.textContent =
+            inc.confidence === "high" ? "Alta confianza" : "Sin confirmar";
+          tags.appendChild(confTag);
+
+          const sourceTag = document.createElement("span");
+          sourceTag.className = `tag-pill ${
+            inc.source === "citizen"
+              ? "tag-source-citizen"
+              : "tag-source-media"
+          }`;
+          sourceTag.textContent =
+            inc.source === "citizen" ? "Ciudadano" : inc.source;
+          tags.appendChild(sourceTag);
+
+          if (inc.photo_url || inc.evidence_link) {
+            const evTag = document.createElement("span");
+            evTag.className = "tag-pill";
+            evTag.textContent = "Con evidencia";
+            tags.appendChild(evTag);
+          }
+
+          item.appendChild(tags);
+
+          item.addEventListener("click", () => {
+            if (Number.isFinite(inc.lat) && Number.isFinite(inc.lng)) {
+              map.setView([inc.lat, inc.lng], 13);
             }
-
-            const time = document.createElement("div");
-            time.className = "incident-time";
-            time.textContent = formatTimeAgo(inc.created_at);
-            item.appendChild(time);
-
-            const tags = document.createElement("div");
-            tags.className = "incident-tags";
-
-            const typeTag = document.createElement("span");
-            typeTag.className = "tag-pill tag-type";
-            typeTag.textContent = getTypeLabel(inc.type);
-            tags.appendChild(typeTag);
-
-            const confTag = document.createElement("span");
-            confTag.className = `tag-pill ${
-              inc.confidence === "high"
-                ? "tag-confidence-high"
-                : "tag-confidence-low"
-            }`;
-            confTag.textContent =
-              inc.confidence === "high" ? "Alta confianza" : "Sin confirmar";
-            tags.appendChild(confTag);
-
-            const sourceTag = document.createElement("span");
-            sourceTag.className = `tag-pill ${
-              inc.source === "citizen"
-                ? "tag-source-citizen"
-                : "tag-source-media"
-            }`;
-            sourceTag.textContent =
-              inc.source === "citizen" ? "Ciudadano" : inc.source;
-            tags.appendChild(sourceTag);
-
-            if (inc.photo_url || inc.evidence_link) {
-              const evTag = document.createElement("span");
-              evTag.className = "tag-pill";
-              evTag.textContent = "Con evidencia";
-              tags.appendChild(evTag);
-            }
-
-            item.appendChild(tags);
-
-            item.addEventListener("click", () => {
-              if (Number.isFinite(inc.lat) && Number.isFinite(inc.lng)) {
-                map.setView([inc.lat, inc.lng], 13);
-              }
-            });
-
-            listEl.appendChild(item);
           });
 
-          countEl.textContent = visible.length;
-        }
+          container.appendChild(item);
+        };
 
         visible.forEach((inc) => {
+          if (listEl) appendIncidentItem(listEl, inc);
+          if (mobileListEl) appendIncidentItem(mobileListEl, inc);
+
           const emojiIcon = L.divIcon({
             className: "emoji-marker",
             html: `<div style="
@@ -1426,6 +1465,10 @@
       const reportSheet = document.getElementById("report-sheet");
       const reportFab = document.getElementById("report-fab");
       const reportSheetClose = document.getElementById("report-sheet-close");
+      const sheetTabMap = document.getElementById("sheet-tab-map");
+      const sheetTabReport = document.getElementById("sheet-tab-report");
+      const sheetViewMap = document.getElementById("sheet-view-map");
+      const sheetViewReport = document.getElementById("sheet-view-report");
 
       function openSheet() {
         reportSheet.classList.add("open");
@@ -1436,6 +1479,20 @@
 
       reportFab.addEventListener("click", openSheet);
       reportSheetClose.addEventListener("click", closeSheet);
+
+      sheetTabMap.addEventListener("click", () => {
+        sheetTabMap.classList.add("active");
+        sheetTabReport.classList.remove("active");
+        sheetViewMap.style.display = "block";
+        sheetViewReport.style.display = "none";
+      });
+
+      sheetTabReport.addEventListener("click", () => {
+        sheetTabReport.classList.add("active");
+        sheetTabMap.classList.remove("active");
+        sheetViewMap.style.display = "none";
+        sheetViewReport.style.display = "block";
+      });
 
       loadIncidents();
     </script>
