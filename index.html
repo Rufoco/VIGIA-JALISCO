@@ -920,7 +920,17 @@
         SUPABASE_ANON_KEY
       );
 
-      const map = L.map("map").setView([20.6736, -103.344], 11);
+      // Crear mapa sin setView inicial
+      const map = L.map("map");
+
+      // Límites aproximados del estado de Jalisco (sudoeste / noreste)
+      const jaliscoBounds = L.latLngBounds(
+        [18.9, -106.0],
+        [22.4, -101.5]
+      );
+
+      // Mostrar Jalisco completo al entrar
+      map.fitBounds(jaliscoBounds);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
