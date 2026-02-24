@@ -743,7 +743,7 @@
               <div class="field-label">Tipo de incidente</div>
               <select id="incident-type">
                 <option value="">Selecciona...</option>
-                <option value="VEHICLE_FIRE">🔥 Vehículo incendiado</option>
+                <option value="FIRE">🔥 Incendio</option>
                 <option value="ROAD_BLOCK">🛑 Bloqueo en vialidad</option>
                 <option value="TIRE_SPIKES">🛞 Poncha llantas / clavos</option>
                 <option value="SHOOTING">💥 Balacera / enfrentamiento</option>
@@ -757,7 +757,7 @@
               <textarea
                 id="incident-desc"
                 maxlength="500"
-                placeholder="Breve descripción..."
+                placeholder="Ejemplo: Incendio de vehículo / casa / lote baldío..."
               ></textarea>
             </div>
 
@@ -844,7 +844,7 @@
             <div class="field-label">Tipo de incidente</div>
             <select id="incident-type-mobile">
               <option value="">Selecciona...</option>
-              <option value="VEHICLE_FIRE">🔥 Vehículo incendiado</option>
+              <option value="FIRE">🔥 Incendio</option>
               <option value="ROAD_BLOCK">🛑 Bloqueo en vialidad</option>
               <option value="TIRE_SPIKES">🛞 Poncha llantas / clavos</option>
               <option value="SHOOTING">💥 Balacera / enfrentamiento</option>
@@ -858,7 +858,7 @@
             <textarea
               id="incident-desc-mobile"
               maxlength="500"
-              placeholder="Breve descripción..."
+              placeholder="Ejemplo: Incendio de vehículo / casa / lote baldío..."
             ></textarea>
           </div>
 
@@ -943,18 +943,21 @@
         shadowSize: [41, 41]
       });
 
+      // Tipos unificados (FIRE general) y compatibilidad con viejos
       const INCIDENT_TYPES = {
-        VEHICLE_FIRE: { label: "Vehículo incendiado" },
+        FIRE: { label: "Incendio" },
+        VEHICLE_FIRE: { label: "Incendio" }, // legacy
         ROAD_BLOCK: { label: "Bloqueo en vialidad" },
         TIRE_SPIKES: { label: "Poncha llantas / clavos" },
         SHOOTING: { label: "Balacera / enfrentamiento" },
         CRIME: { label: "Robo / secuestro / extorsión" },
         OTHER: { label: "Otro peligro" },
-        BLOCK: { label: "Bloqueo en vialidad" },
-        ROBBERY: { label: "Robo" }
+        BLOCK: { label: "Bloqueo en vialidad" }, // legacy
+        ROBBERY: { label: "Robo" }              // legacy
       };
 
       const TYPE_EMOJIS = {
+        FIRE: "🔥",
         VEHICLE_FIRE: "🔥",
         ROAD_BLOCK: "🛑",
         TIRE_SPIKES: "🛞",
