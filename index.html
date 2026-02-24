@@ -923,14 +923,14 @@
       // Crear mapa sin setView inicial
       const map = L.map("map");
 
-      // Límites aproximados del estado de Jalisco (sudoeste / noreste)
+      // Límites ajustados de Jalisco (más cerca, pero completo)
       const jaliscoBounds = L.latLngBounds(
-        [18.9, -106.0],
-        [22.4, -101.5]
+        [19.2, -105.8], // sudoeste
+        [22.1, -101.9]  // noreste
       );
 
-      // Mostrar Jalisco completo al entrar
-      map.fitBounds(jaliscoBounds);
+      // Mostrar Jalisco completo al entrar, sin alejar tanto
+      map.fitBounds(jaliscoBounds, { maxZoom: 8 });
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
