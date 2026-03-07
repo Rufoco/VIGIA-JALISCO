@@ -1,9 +1,12 @@
+// Configuración de Supabase (backend de datos)
 const SUPABASE_URL = "https://hcpfhqbcjgdwfqoympni.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjcGZocWJjamdkd2Zxb3ltcG5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzA5NDQsImV4cCI6MjA4NzQ0Njk0NH0.8pIzPhDXDRWeoJVxc3adomW-XXpIleO07dRV5-hmC2k";
 
+// Constante para trabajar tiempos en minutos
 const MINUTES = 60 * 1000;
 
+// Catálogo de tipos de incidente
 const INCIDENT_TYPES = {
   FIRE: { label: "Incendio" },
   VEHICLEFIRE: { label: "Incendio" },
@@ -13,9 +16,10 @@ const INCIDENT_TYPES = {
   CRIME: { label: "Robo / secuestro / extorsión" },
   OTHER: { label: "Otro peligro" },
   BLOCK: { label: "Bloqueo en vialidad" },
-  ROBBERY: { label: "Robo" }
+  ROBBERY: { label: "Robo" },
 };
 
+// Emoji asociado a cada tipo
 const TYPE_EMOJIS = {
   FIRE: "🔥",
   VEHICLEFIRE: "🔥",
@@ -25,11 +29,13 @@ const TYPE_EMOJIS = {
   CRIME: "🕵️‍♂️",
   OTHER: "⚠️",
   BLOCK: "🛑",
-  ROBBERY: "🕵️‍♂️"
+  ROBBERY: "🕵️‍♂️",
 };
 
+// Cliente de Supabase
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Estado global de la app
 const appState = {
   map: null,
   markersLayer: null,
@@ -39,16 +45,16 @@ const appState = {
   selectedLng: null,
   lastSubmitTs: 0,
   tempPickMarker: null,
-  userLocationMarker: null
+  userLocationMarker: null,
 };
 
+// Referencias a elementos del DOM
 const ui = {};
 
 function cacheElements() {
   ui.pickOverlay = document.getElementById("pick-overlay");
   ui.pickBackdrop = document.getElementById("pick-backdrop");
   ui.liveUpdated = document.getElementById("live-updated");
-
   ui.incidentsListDesktop = document.getElementById("incidents-list");
   ui.incidentsListMobile = document.getElementById("mobile-incidents-list");
   ui.incidentCount = document.getElementById("incident-count");
@@ -87,6 +93,7 @@ function cacheElements() {
   ui.disclaimerBtn = document.getElementById("disclaimer-accept-btn");
 }
 
+// Convierte una marca de tiempo a texto “hace X min/h”
 function formatTimeAgo(ts) {
   if (!ts) return "";
   const diff = Date.now() - new Date(ts).getTime();
@@ -98,16 +105,19 @@ function formatTimeAgo(ts) {
   return `Hace ${hours} h`;
 }
 
+// Emoji por tipo, con fallback
 function getTypeEmoji(type) {
   return TYPE_EMOJIS[type] || TYPE_EMOJIS.OTHER;
 }
 
+// Texto “emoji + etiqueta” para mostrar tipo de incidente
 function getTypeLabel(type) {
   const info = INCIDENT_TYPES[type] || INCIDENT_TYPES.OTHER;
   const emoji = TYPE_EMOJIS[type] || TYPE_EMOJIS.OTHER;
   return `${emoji} ${info.label}`;
 }
 
+// Incidente se considera expirado después de 24 horas
 function isExpired(incident) {
   if (!incident.created_at) return false;
   const created = new Date(incident.created_at).getTime();
@@ -115,37 +125,43 @@ function isExpired(incident) {
   return Date.now() - created > DAY_24H;
 }
 
+// Formatea fecha/hora para la barra “Actualizado”
 function formatUpdatedTime(date) {
   const d = date;
   const dia = d.toLocaleDateString("es-MX", {
     day: "2-digit",
     month: "short",
-    year: "numeric"
+    year: "numeric",
   });
   const hora = d.toLocaleTimeString("es-MX", {
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   });
   return `${dia}, ${hora}`;
 }
 
+// Actualiza texto de la barra EN VIVO
 function updateLiveBar() {
   if (!ui.liveUpdated) return;
   ui.liveUpdated.textContent = "Actualizado · " + formatUpdatedTime(new Date());
 }
 
+// Inicializa Leaflet, capa base y controles de geolocalización
 function initMap() {
   const map = L.map("map");
   appState.map = map;
 
-  const jaliscoBounds = L.latLngBounds([19.2, -105.8], [22.1, -101.9]);
+  const jaliscoBounds = L.latLngBounds(
+    [19.2, -105.8],
+    [22.1, -101.9]
+  );
   map.fitBounds(jaliscoBounds, { maxZoom: 8 });
 
   L.tileLayer(
     "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
     {
       maxZoom: 19,
-      attribution: "&copy; OpenStreetMap, © Carto"
+      attribution: "© OpenStreetMap, © Carto",
     }
   ).addTo(map);
 
@@ -153,22 +169,23 @@ function initMap() {
 
   const locateControl = L.control({ position: "topright" });
   locateControl.onAdd = function () {
-    const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+    const container = L.DomUtil.create(
+      "div",
+      "leaflet-bar leaflet-control"
+    );
     const button = L.DomUtil.create("a", "locate-button", container);
     button.href = "#";
     button.title = "Ir a mi ubicación";
     button.innerHTML = "📍";
-
     L.DomEvent.on(button, "click", function (e) {
       L.DomEvent.stopPropagation(e);
       L.DomEvent.preventDefault(e);
       map.locate({
         setView: true,
         maxZoom: 15,
-        enableHighAccuracy: true
+        enableHighAccuracy: true,
       });
     });
-
     return container;
   };
   locateControl.addTo(map);
@@ -189,6 +206,7 @@ function initMap() {
   map.on("click", handleMapClick);
 }
 
+// Click en el mapa para elegir ubicación del incidente
 function handleMapClick(e) {
   if (!appState.pickMode) return;
 
@@ -196,57 +214,46 @@ function handleMapClick(e) {
   appState.selectedLng = e.latlng.lng;
 
   const incidentIcon = new L.Icon({
-    iconUrl:
-      "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
     shadowUrl:
       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
-    shadowSize: [41, 41]
+    shadowSize: [41, 41],
   });
 
   if (!appState.tempPickMarker) {
-    appState.tempPickMarker = L.marker([appState.selectedLat, appState.selectedLng], {
-      icon: incidentIcon
-    }).addTo(appState.map);
+    appState.tempPickMarker = L.marker(
+      [appState.selectedLat, appState.selectedLng],
+      { icon: incidentIcon }
+    ).addTo(appState.map);
   } else {
-    appState.tempPickMarker.setLatLng([appState.selectedLat, appState.selectedLng]);
-    appState.tempPickMarker.setIcon(incidentIcon);
+    appState.tempPickMarker.setLatLng([
+      appState.selectedLat,
+      appState.selectedLng,
+    ]);
   }
 
-  appState.pickMode = false;
-  if (ui.pickOverlay) ui.pickOverlay.style.display = "none";
-  if (ui.pickBackdrop) ui.pickBackdrop.style.display = "none";
-
-  if (ui.reportSheet) {
-    ui.reportSheet.classList.add("open");
-  }
+  hidePickMode();
 }
 
-function startPick() {
+// Mostrar/ocultar modo de selección en el mapa
+function showPickMode() {
   appState.pickMode = true;
   if (ui.pickOverlay) ui.pickOverlay.style.display = "block";
   if (ui.pickBackdrop) ui.pickBackdrop.style.display = "block";
 }
 
-async function loadIncidents() {
-  const { data, error } = await supabaseClient
-    .from("incidents")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(300);
-
-  if (error) {
-    console.error("Error cargando incidentes", error);
-    return;
-  }
-
-  appState.allIncidents = data || [];
-  renderIncidents();
-  updateLiveBar();
+function hidePickMode() {
+  appState.pickMode = false;
+  if (ui.pickOverlay) ui.pickOverlay.style.display = "none";
+  if (ui.pickBackdrop) ui.pickBackdrop.style.display = "none";
+  if (ui.mapPickDesktop) ui.mapPickDesktop.classList.add("picked");
+  if (ui.mapPickMobile) ui.mapPickMobile.classList.add("picked");
 }
 
+// Construye un item de incidente para la lista
 function buildIncidentItem(inc) {
   const item = document.createElement("div");
   item.className = "incident-item";
@@ -305,6 +312,7 @@ function buildIncidentItem(inc) {
   return item;
 }
 
+// Renderiza incidentes en mapa + listas
 function renderIncidents() {
   const listDesktop = ui.incidentsListDesktop;
   const listMobile = ui.incidentsListMobile;
@@ -318,7 +326,7 @@ function renderIncidents() {
     .map((inc) => ({
       ...inc,
       lat: Number(inc.lat),
-      lng: Number(inc.lng)
+      lng: Number(inc.lng),
     }))
     .filter(
       (inc) =>
@@ -336,276 +344,313 @@ function renderIncidents() {
     const emojiIcon = L.divIcon({
       className: "",
       html:
-        "<div style=\"font-size:22px; line-height:1; text-shadow:0 0 4px rgba(0,0,0,0.7); transform:translate(-50%, -50%);\">" +
-        getTypeEmoji(inc.type) +
-        "</div>",
-      iconSize: [22, 22],
-      iconAnchor: [11, 11]
+        `<div style="font-size:20px;text-align:center;">${getTypeEmoji(
+          inc.type
+        )}</div>`,
     });
 
-    const marker = L.marker([inc.lat, inc.lng], {
-      icon: emojiIcon
-    });
+    const marker = L.marker([inc.lat, inc.lng], { icon: emojiIcon });
+    let popupHtml = `<div style="font-size:13px;font-weight:600;margin-bottom:4px;">${getTypeLabel(
+      inc.type
+    )}</div>`;
 
-    let popupHtml =
-      `<div class="popup-content">` +
-      `<h3>${getTypeLabel(inc.type)}</h3>` +
-      `<p>${inc.description && inc.description !== "EMPTY"
-        ? inc.description
-        : "Sin descripción"
-      }</p>` +
-      `<p style="font-size:11px;color:#aaa;">${formatTimeAgo(
-        inc.created_at
-      )}</p>`;
+    if (inc.description && inc.description !== "EMPTY") {
+      popupHtml += `<div style="font-size:12px;margin-bottom:4px;">${
+        inc.description
+      }</div>`;
+    }
+
+    popupHtml += `<div style="font-size:11px;color:#aaa;margin-bottom:4px;">${formatTimeAgo(
+      inc.created_at
+    )}</div>`;
 
     if (inc.photo_url) {
-      popupHtml +=
-        `<p><a href="${inc.photo_url}" target="_blank" rel="noopener" style="color:#ffb300;">Ver foto</a></p>`;
-    } else if (inc.evidence_link) {
-      popupHtml +=
-        `<p><a href="${inc.evidence_link}" target="_blank" rel="noopener" style="color:#ffb300;">Ver evidencia</a></p>`;
+      popupHtml += `<div style="margin-top:4px;"><img src="${
+        inc.photo_url
+      }" alt="Foto" style="max-width:220px;border-radius:4px;" /></div>`;
     }
 
-    popupHtml += `</div>`;
+    if (inc.evidence_link) {
+      popupHtml += `<div style="margin-top:4px;font-size:11px;"><a href="${
+        inc.evidence_link
+      }" target="_blank" rel="noopener noreferrer">Ver evidencia</a></div>`;
+    }
 
     marker.bindPopup(popupHtml);
-    appState.markersLayer.addLayer(marker);
+    marker.addTo(appState.markersLayer);
   });
 }
 
-async function uploadPhoto(file) {
-  if (!file) return null;
-
-  const ext = file.name.split(".").pop();
-  const fileName = `${Date.now()}-${Math.random()
-    .toString(36)
-    .slice(2)}.${ext}`;
-  const filePath = `public/${fileName}`;
-
-  const { error } = await supabaseClient.storage
-    .from("incident-photos")
-    .upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: false
-    });
+// Carga incidentes desde Supabase
+async function loadIncidents() {
+  const { data, error } = await supabaseClient
+    .from("incidents")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   if (error) {
-    console.error("Error subiendo foto", error);
-    return null;
+    console.error("Error cargando incidentes:", error);
+    return;
   }
 
-  const { data: pub } = supabaseClient.storage
-    .from("incident-photos")
-    .getPublicUrl(filePath);
-
-  return (pub && pub.publicUrl) || null;
+  appState.allIncidents = data || [];
+  renderIncidents();
+  updateLiveBar();
 }
 
-async function submitReport({ type, description, evidenceLink, photoFile, statusEl, buttonEl }) {
-  if (!type) {
-    alert("Selecciona un tipo de incidente.");
-    return;
-  }
-  if (!appState.selectedLat || !appState.selectedLng) {
-    alert("Selecciona una ubicación en el mapa.");
-    return;
-  }
-  if (Date.now() - appState.lastSubmitTs < 15000) {
-    alert("Espera unos segundos antes de enviar otro reporte.");
-    return;
-  }
-
-  appState.lastSubmitTs = Date.now();
-  buttonEl.disabled = true;
-  statusEl.textContent = "Enviando...";
-  statusEl.className = "status-msg";
-
-  try {
-    let photoUrl = null;
-    if (photoFile) {
-      photoUrl = await uploadPhoto(photoFile);
+// Envía un incidente nuevo
+async function submitIncident(isMobile) {
+  const now = Date.now();
+  if (now - appState.lastSubmitTs < 15 * 1000) {
+    const uiStatus = isMobile ? ui.statusMobile : ui.statusDesktop;
+    if (uiStatus) {
+      uiStatus.textContent =
+        "Espera unos segundos antes de enviar otro reporte.";
+      uiStatus.className = "status-msg status-err";
     }
+    return;
+  }
 
-    const { error } = await supabaseClient.from("incidents").insert({
-      type,
-      source: "citizen",
-      description,
-      lat: appState.selectedLat,
-      lng: appState.selectedLng,
-      confidence: "low",
-      photo_url: photoUrl,
-      evidence_link: evidenceLink || null
-    });
+  const src = isMobile
+    ? { type: ui.typeMobile, desc: ui.descMobile, evidence: ui.evidenceMobile }
+    : { type: ui.typeDesktop, desc: ui.descDesktop, evidence: ui.evidenceDesktop };
 
-    if (error) {
-      console.error("Error insertando incidente", error);
-      statusEl.textContent = "Error al enviar el reporte.";
+  const typeValue = src.type && src.type.value;
+  const description = (src.desc && src.desc.value.trim()) || "EMPTY";
+  const evidenceLink = (src.evidence && src.evidence.value.trim()) || null;
+
+  if (!typeValue) {
+    const statusEl = isMobile ? ui.statusMobile : ui.statusDesktop;
+    if (statusEl) {
+      statusEl.textContent = "Selecciona el tipo de incidente.";
       statusEl.className = "status-msg status-err";
-      return;
     }
+    return;
+  }
 
-    statusEl.textContent = "Reporte enviado.";
+  if (!Number.isFinite(appState.selectedLat) || !Number.isFinite(appState.selectedLng)) {
+    const statusEl = isMobile ? ui.statusMobile : ui.statusDesktop;
+    if (statusEl) {
+      statusEl.textContent = "Elige la ubicación en el mapa.";
+      statusEl.className = "status-msg status-err";
+    }
+    return;
+  }
+
+  const payload = {
+    type: typeValue,
+    description,
+    lat: appState.selectedLat,
+    lng: appState.selectedLng,
+    evidence_link: evidenceLink,
+    confidence: "low",
+  };
+
+  const btn = isMobile ? ui.submitBtnMobile : ui.submitBtnDesktop;
+  const statusEl = isMobile ? ui.statusMobile : ui.statusDesktop;
+
+  if (btn) btn.disabled = true;
+  if (statusEl) {
+    statusEl.textContent = "Enviando reporte…";
+    statusEl.className = "status-msg";
+  }
+
+  const { data, error } = await supabaseClient
+    .from("incidents")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (btn) btn.disabled = false;
+
+  if (error) {
+    console.error("Error enviando incidente:", error);
+    if (statusEl) {
+      statusEl.textContent = "Error al enviar. Intenta de nuevo.";
+      statusEl.className = "status-msg status-err";
+    }
+    return;
+  }
+
+  appState.lastSubmitTs = now;
+  appState.allIncidents.unshift(data);
+  renderIncidents();
+  updateLiveBar();
+
+  if (statusEl) {
+    statusEl.textContent = "Reporte enviado. Gracias por contribuir.";
     statusEl.className = "status-msg status-ok";
-
-    const newLat = appState.selectedLat;
-    const newLng = appState.selectedLng;
-
-    appState.selectedLat = null;
-    appState.selectedLng = null;
-
-    if (appState.tempPickMarker) {
-      appState.map.removeLayer(appState.tempPickMarker);
-      appState.tempPickMarker = null;
-    }
-
-    appState.allIncidents.unshift({
-      id: crypto.randomUUID(),
-      type,
-      source: "citizen",
-      description,
-      lat: newLat,
-      lng: newLng,
-      confidence: "low",
-      photo_url: photoUrl,
-      evidence_link: evidenceLink || null,
-      created_at: new Date().toISOString()
-    });
-
-    renderIncidents();
-    updateLiveBar();
-  } catch (e) {
-    console.error(e);
-    statusEl.textContent = "Error inesperado.";
-    statusEl.className = "status-msg status-err";
-  } finally {
-    buttonEl.disabled = false;
   }
 }
 
-function bindReportForms() {
-  if (ui.submitBtnDesktop) {
-    ui.submitBtnDesktop.addEventListener("click", () => {
-      const type = ui.typeDesktop.value;
-      const desc = ui.descDesktop.value.trim().slice(0, 500);
-      const evidence = ui.evidenceDesktop.value.trim();
-      const photoFile = ui.photoDesktop.files[0];
+// UI: pestañas sidebar escritorio
+function setupDesktopTabs() {
+  if (!ui.tabList || !ui.tabReport || !ui.reportPanel) return;
 
-      submitReport({
-        type,
-        description: desc,
-        evidenceLink: evidence || null,
-        photoFile,
-        statusEl: ui.statusDesktop,
-        buttonEl: ui.submitBtnDesktop
-      });
-    });
-  }
+  ui.tabList.addEventListener("click", () => {
+    ui.tabList.classList.add("active");
+    ui.tabReport.classList.remove("active");
+    ui.reportPanel.classList.remove("visible");
+  });
 
-  if (ui.submitBtnMobile) {
-    ui.submitBtnMobile.addEventListener("click", () => {
-      const type = ui.typeMobile.value;
-      const desc = ui.descMobile.value.trim().slice(0, 500);
-      const evidence = ui.evidenceMobile.value.trim();
-      const photoFile = ui.photoMobile.files[0];
-
-      submitReport({
-        type,
-        description: desc,
-        evidenceLink: evidence || null,
-        photoFile,
-        statusEl: ui.statusMobile,
-        buttonEl: ui.submitBtnMobile
-      });
-    });
-  }
-
-  if (ui.mapPickDesktop) {
-    ui.mapPickDesktop.addEventListener("click", startPick);
-  }
-
-  if (ui.mapPickMobile) {
-    ui.mapPickMobile.addEventListener("click", () => {
-      startPick();
-      if (ui.reportSheet) ui.reportSheet.classList.remove("open");
-    });
-  }
-}
-
-function bindTabs() {
-  if (ui.tabList && ui.tabReport && ui.incidentsListDesktop && ui.reportPanel) {
-    ui.tabList.addEventListener("click", () => {
-      ui.tabList.classList.add("active");
-      ui.tabReport.classList.remove("active");
-      ui.incidentsListDesktop.style.display = "block";
-      ui.reportPanel.style.display = "none";
-      ui.reportPanel.classList.remove("visible");
-    });
-
-    ui.tabReport.addEventListener("click", () => {
-      ui.tabReport.classList.add("active");
-      ui.tabList.classList.remove("active");
-      ui.incidentsListDesktop.style.display = "none";
-      ui.reportPanel.style.display = "flex";
-      ui.reportPanel.classList.add("visible");
-    });
-  }
-
-  document.querySelectorAll(".filter-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".filter-btn").forEach((b) => {
-        b.classList.remove("active");
-      });
-      btn.classList.add("active");
-      renderIncidents();
-    });
+  ui.tabReport.addEventListener("click", () => {
+    ui.tabReport.classList.add("active");
+    ui.tabList.classList.remove("active");
+    ui.reportPanel.classList.add("visible");
   });
 }
 
-function bindSheet() {
-  function openSheet() {
-    if (ui.reportSheet) ui.reportSheet.classList.add("open");
-  }
-  function closeSheet() {
-    if (ui.reportSheet) ui.reportSheet.classList.remove("open");
-  }
-
-  if (ui.reportFab) ui.reportFab.addEventListener("click", openSheet);
-  if (ui.reportSheetClose) ui.reportSheetClose.addEventListener("click", closeSheet);
-
-  if (ui.sheetTabMap && ui.sheetTabReport && ui.sheetViewMap && ui.sheetViewReport) {
-    ui.sheetTabMap.addEventListener("click", () => {
-      ui.sheetTabMap.classList.add("active");
-      ui.sheetTabReport.classList.remove("active");
-      ui.sheetViewMap.style.display = "block";
-      ui.sheetViewReport.style.display = "none";
+// UI: botón elegir punto en mapa
+function setupMapPickButtons() {
+  if (ui.mapPickDesktop) {
+    ui.mapPickDesktop.addEventListener("click", () => {
+      showPickMode();
     });
-
-    ui.sheetTabReport.addEventListener("click", () => {
-      ui.sheetTabReport.classList.add("active");
-      ui.sheetTabMap.classList.remove("active");
-      ui.sheetViewMap.style.display = "none";
-      ui.sheetViewReport.style.display = "block";
+  }
+  if (ui.mapPickMobile) {
+    ui.mapPickMobile.addEventListener("click", () => {
+      showPickMode();
     });
   }
 }
 
-function bindDisclaimer() {
-  if (ui.disclaimerBtn && ui.disclaimerOverlay) {
-    ui.disclaimerOverlay.style.display = "flex";
-    ui.disclaimerBtn.addEventListener("click", () => {
-      ui.disclaimerOverlay.style.display = "none";
-    });
+// UI: envío formularios
+function setupSubmitButtons() {
+  if (ui.submitBtnDesktop) {
+    ui.submitBtnDesktop.addEventListener("click", () => submitIncident(false));
+  }
+  if (ui.submitBtnMobile) {
+    ui.submitBtnMobile.addEventListener("click", () => submitIncident(true));
   }
 }
 
-function initApp() {
+// UI: sheet móvil tabs
+function setupMobileSheetTabs() {
+  const tabMap = ui.sheetTabMap;
+  const tabReport = ui.sheetTabReport;
+  const viewMap = ui.sheetViewMap;
+  const viewReport = ui.sheetViewReport;
+
+  if (!tabMap || !tabReport || !viewMap || !viewReport) return;
+
+  tabMap.addEventListener("click", () => {
+    tabMap.classList.add("active");
+    tabReport.classList.remove("active");
+    viewMap.style.display = "block";
+    viewReport.style.display = "none";
+  });
+
+  tabReport.addEventListener("click", () => {
+    focusMobileReportTab();
+  });
+}
+
+// UI: FAB sheet móvil
+function setupMobileSheetFab() {
+  const sheet = ui.reportSheet;
+  const fab = ui.reportFab;
+  const closeBtn = ui.reportSheetClose;
+
+  if (!sheet || !fab || !closeBtn) return;
+
+  fab.addEventListener("click", () => {
+    sheet.classList.add("open");
+  });
+
+  closeBtn.addEventListener("click", () => {
+    sheet.classList.remove("open");
+  });
+}
+
+// NUEVO: grid tipos móvil
+function setupMobileTypeGrid() {
+  const grid = document.getElementById("incident-type-mobile-grid");
+  const hiddenInput = document.getElementById("incident-type-mobile");
+  if (!grid || !hiddenInput) return;
+
+  grid.addEventListener("click", (ev) => {
+    const chip = ev.target.closest(".incident-type-chip");
+    if (!chip) return;
+
+    grid
+      .querySelectorAll(".incident-type-chip.selected")
+      .forEach((el) => el.classList.remove("selected"));
+
+    chip.classList.add("selected");
+    hiddenInput.value = chip.dataset.value || "";
+  });
+}
+
+// NUEVO: pestaña Reportar móvil + geolocalización
+function focusMobileReportTab() {
+  const tabMap = ui.sheetTabMap;
+  const tabReport = ui.sheetTabReport;
+  const viewMap = ui.sheetViewMap;
+  const viewReport = ui.sheetViewReport;
+
+  if (!tabMap || !tabReport || !viewMap || !viewReport) return;
+
+  tabMap.classList.remove("active");
+  tabReport.classList.add("active");
+  viewMap.style.display = "none";
+  viewReport.style.display = "block";
+
+  if (navigator.geolocation && appState.map) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        appState.selectedLat = latitude;
+        appState.selectedLng = longitude;
+        appState.map.setView([latitude, longitude], 14);
+
+        if (ui.mapPickMobile) ui.mapPickMobile.classList.add("picked");
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  }
+}
+
+// NUEVO: disclaimer
+function setupDisclaimer() {
+  if (!ui.disclaimerOverlay || !ui.disclaimerBtn) return;
+  ui.disclaimerBtn.addEventListener("click", () => {
+    ui.disclaimerOverlay.style.display = "none";
+  });
+}
+
+// Inicialización principal
+async function init() {
   cacheElements();
   initMap();
-  bindReportForms();
-  bindTabs();
-  bindSheet();
-  bindDisclaimer();
-  loadIncidents();
+  setupDesktopTabs();
+  setupMapPickButtons();
+  setupSubmitButtons();
+  setupMobileSheetTabs();
+  setupMobileSheetFab();
+  setupMobileTypeGrid();
+  setupDisclaimer();
+
+  await loadIncidents();
+
+  // Suscripción en tiempo real (opcional)
+  supabaseClient
+    .channel("incidents-changes")
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "incidents",
+      },
+      (payload) => {
+        appState.allIncidents.unshift(payload.new);
+        renderIncidents();
+        updateLiveBar();
+      }
+    )
+    .subscribe();
 }
 
-document.addEventListener("DOMContentLoaded", initApp);
+document.addEventListener("DOMContentLoaded", init);

@@ -5,19 +5,15 @@
   <title>Vigía Jalisco · Mapa ciudadano de incidentes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Favicon con emoji de alerta 🚨 -->
   <link
     rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' x='0.1em' font-size='90'>🚨</text></svg>"
   />
 
-  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
-
-  <!-- Tus estilos -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -68,7 +64,6 @@
       </div>
     </header>
 
-    <!-- Barra EN VIVO -->
     <div class="live-bar">
       <span class="live-dot"></span>
       <span class="live-text">EN VIVO</span>
@@ -76,7 +71,7 @@
     </div>
 
     <div class="main">
-      <!-- Sidebar escritorio -->
+      <!-- ESCRITORIO -->
       <aside class="sidebar">
         <div class="sidebar-header">
           <span>Incidentes reportados</span>
@@ -156,8 +151,7 @@
             href="https://www.instagram.com/rufoco"
             target="_blank"
             rel="noopener noreferrer"
-            >Rufoco</a
-          >
+          >📷 Rufoco</a>
         </div>
       </aside>
 
@@ -171,7 +165,7 @@
       </div>
     </div>
 
-    <!-- Panel móvil pestañas Mapa / Reportar -->
+    <!-- MÓVIL: sheet -->
     <div id="report-sheet" class="report-sheet">
       <div class="report-sheet-header">
         <div class="report-sheet-header-title">
@@ -187,12 +181,11 @@
       </div>
 
       <div class="report-sheet-tabs">
-        <div id="sheet-tab-map" class="report-sheet-tab active">Mapa</div>
-        <div id="sheet-tab-report" class="report-sheet-tab">Reportar</div>
+        <div id="sheet-tab-map" class="report-sheet-tab active">🗺️ Mapa</div>
+        <div id="sheet-tab-report" class="report-sheet-tab">🚨 Reportar</div>
       </div>
 
       <div class="report-sheet-body">
-        <!-- Vista MAPA (lista móvil) -->
         <div id="sheet-view-map">
           <div class="field-label" style="margin-bottom: 4px;">
             Incidentes reportados
@@ -203,19 +196,38 @@
           ></div>
         </div>
 
-        <!-- Vista REPORTAR (formulario móvil) -->
         <div id="sheet-view-report" style="display: none;">
           <div class="field-group">
             <div class="field-label">Tipo de incidente</div>
-            <select id="incident-type-mobile">
-              <option value="">Selecciona...</option>
-              <option value="FIRE">🔥 Incendio</option>
-              <option value="ROADBLOCK">🛑 Bloqueo en vialidad</option>
-              <option value="TIRESPIKES">🛞 Poncha llantas / clavos</option>
-              <option value="SHOOTING">💥 Balacera / enfrentamiento</option>
-              <option value="CRIME">🕵️‍♂️ Robo / secuestro / extorsión</option>
-              <option value="OTHER">⚠️ Otro peligro</option>
-            </select>
+
+            <div id="incident-type-mobile-grid" class="incident-type-grid">
+              <button type="button" class="incident-type-chip" data-value="FIRE">
+                <span class="emoji">🔥</span>
+                <span class="label">Incendio</span>
+              </button>
+              <button type="button" class="incident-type-chip" data-value="ROADBLOCK">
+                <span class="emoji">🛑</span>
+                <span class="label">Bloqueo</span>
+              </button>
+              <button type="button" class="incident-type-chip" data-value="TIRESPIKES">
+                <span class="emoji">🛞</span>
+                <span class="label">Poncha llantas</span>
+              </button>
+              <button type="button" class="incident-type-chip" data-value="SHOOTING">
+                <span class="emoji">💥</span>
+                <span class="label">Balacera</span>
+              </button>
+              <button type="button" class="incident-type-chip" data-value="CRIME">
+                <span class="emoji">🕵️‍♂️</span>
+                <span class="label">Robo / secuestro</span>
+              </button>
+              <button type="button" class="incident-type-chip" data-value="OTHER">
+                <span class="emoji">⚠️</span>
+                <span class="label">Otro peligro</span>
+              </button>
+            </div>
+
+            <input type="hidden" id="incident-type-mobile" />
           </div>
 
           <div class="field-group">
@@ -264,23 +276,18 @@
           href="https://www.instagram.com/rufoco"
           target="_blank"
           rel="noopener noreferrer"
-          >Rufoco</a
-        >
+        >📷 Rufoco</a>
       </div>
     </div>
 
-    <!-- Botón flotante móvil -->
     <button id="report-fab" class="report-fab">
       <span>📝</span>
       <span>Mapa / Reportar</span>
     </button>
   </div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Supabase JS -->
   <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
-  <!-- Tu lógica -->
   <script src="app.js"></script>
 </body>
 </html>
