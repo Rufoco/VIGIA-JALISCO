@@ -23,11 +23,20 @@ const INCIDENT_TYPES = {
   ROBBERY: { label: "Robo" },
 };
 
-const TYPE_EMOJIS = {
-  FIRE: "🔥", VEHICLEFIRE: "🔥", ROADBLOCK: "🛑",
-  TIRESPIKES: "🛞", SHOOTING: "💥", CRIME: "🕵️",
-  OTHER: "⚠️", BLOCK: "🛑", ROBBERY: "🕵️",
+// SVG icons — Waze-style flat vector icons
+const TYPE_ICONS = {
+  FIRE: { color: "#FF6D3A", svg: '<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c0 4-4 6-4 10a4 4 0 008 0c0-4-4-6-4-10z" fill="currentColor" opacity=".25" stroke="currentColor" stroke-width="1.5"/><path d="M12 9c0 2-1.5 3-1.5 5a1.5 1.5 0 003 0c0-2-1.5-3-1.5-5z" fill="currentColor" stroke="currentColor" stroke-width="1"/></svg>' },
+  VEHICLEFIRE: { color: "#FF6D3A", svg: '<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c0 4-4 6-4 10a4 4 0 008 0c0-4-4-6-4-10z" fill="currentColor" opacity=".25" stroke="currentColor" stroke-width="1.5"/><path d="M12 9c0 2-1.5 3-1.5 5a1.5 1.5 0 003 0c0-2-1.5-3-1.5-5z" fill="currentColor" stroke="currentColor" stroke-width="1"/></svg>' },
+  ROADBLOCK: { color: "#FF4757", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="8" width="18" height="8" rx="1" fill="currentColor" opacity=".2"/><path d="M3 8h18M3 16h18M7 8v8M12 8v8M17 8v8"/></svg>' },
+  BLOCK: { color: "#FF4757", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="8" width="18" height="8" rx="1" fill="currentColor" opacity=".2"/><path d="M3 8h18M3 16h18M7 8v8M12 8v8M17 8v8"/></svg>' },
+  TIRESPIKES: { color: "#FFA502", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7" fill="currentColor" opacity=".15"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>' },
+  SHOOTING: { color: "#E84393", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" fill="currentColor" opacity=".12"/><path d="M12 8v8M8 12h8" stroke-width="2.5"/><circle cx="12" cy="12" r="3" fill="currentColor" opacity=".3"/></svg>' },
+  CRIME: { color: "#A29BFE", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5" fill="currentColor" opacity=".15"/><path d="M3 21v-1a7 7 0 0114 0v1"/><path d="M16 3.13a4 4 0 010 7.75M21 21v-1a4 4 0 00-3-3.85"/></svg>' },
+  ROBBERY: { color: "#A29BFE", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5" fill="currentColor" opacity=".15"/><path d="M3 21v-1a7 7 0 0114 0v1"/><path d="M16 3.13a4 4 0 010 7.75M21 21v-1a4 4 0 00-3-3.85"/></svg>' },
+  OTHER: { color: "#FECA57", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" fill="currentColor" opacity=".15"/><path d="M12 9v4M12 17h.01"/></svg>' },
 };
+
+
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -101,9 +110,14 @@ function cacheDom() {
 }
 
 // ========== HELPERS ==========
-function getEmoji(type) { return TYPE_EMOJIS[type] || "⚠️"; }
+function getIcon(type) { return TYPE_ICONS[type] || TYPE_ICONS.OTHER; }
+function getIconHtml(type, size) {
+  const s = size || 20;
+  const icon = getIcon(type);
+  return `<span class="type-icon" style="color:${icon.color};width:${s}px;height:${s}px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">${icon.svg.replace('viewBox', `width="${s}" height="${s}" viewBox`)}</span>`;
+}
 function getLabel(type) { return (INCIDENT_TYPES[type] || INCIDENT_TYPES.OTHER).label; }
-function getTypeLabel(type) { return getEmoji(type) + " " + getLabel(type); }
+function getTypeLabel(type) { return getLabel(type); }
 
 function timeAgo(ts) {
   if (!ts) return "";
@@ -271,7 +285,7 @@ function checkProximityAlerts() {
 }
 
 function showAlertBanner(inc, distKm) {
-  dom.alertBannerIcon.textContent = getEmoji(inc.type);
+  dom.alertBannerIcon.innerHTML = getIconHtml(inc.type, 28);
   dom.alertBannerTitle.textContent = getLabel(inc.type);
   dom.alertBannerDesc.textContent = (inc.description && inc.description !== "EMPTY")
     ? inc.description
@@ -342,16 +356,17 @@ function renderIncidents() {
     if (list) list.appendChild(buildIncidentItem(inc));
 
     // Map marker
+    const iconInfo = getIcon(inc.type);
     const icon = L.divIcon({
       className: "",
-      html: `<div class="incident-marker">${getEmoji(inc.type)}</div>`,
-      iconSize: [34, 34],
-      iconAnchor: [17, 17],
+      html: `<div class="incident-marker" style="border-color:${iconInfo.color};color:${iconInfo.color};">${iconInfo.svg.replace('viewBox', 'width="18" height="18" viewBox')}</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
     });
 
     const marker = L.marker([inc.lat, inc.lng], { icon });
 
-    let popupHtml = `<div style="font-weight:700;margin-bottom:4px;">${getTypeLabel(inc.type)}</div>`;
+    let popupHtml = `<div style="font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;">${getIconHtml(inc.type, 18)}${getLabel(inc.type)}</div>`;
     if (inc.description && inc.description !== "EMPTY") {
       popupHtml += `<div style="font-size:12px;color:#aaa;margin-bottom:4px;">${inc.description}</div>`;
     }
@@ -372,10 +387,10 @@ function buildIncidentItem(inc) {
   const item = document.createElement("div");
   item.className = "incident-item";
 
-  const emoji = document.createElement("div");
-  emoji.className = "incident-emoji";
-  emoji.textContent = getEmoji(inc.type);
-  item.appendChild(emoji);
+  const iconEl = document.createElement("div");
+  iconEl.className = "incident-icon";
+  iconEl.innerHTML = getIconHtml(inc.type, 24);
+  item.appendChild(iconEl);
 
   const info = document.createElement("div");
   info.className = "incident-info";
@@ -525,7 +540,7 @@ function closeRadialMenu() {
 
 function openReportDetail(type) {
   state.selectedReportType = type;
-  dom.reportDetailTypeLabel.textContent = getTypeLabel(type);
+  dom.reportDetailTypeLabel.innerHTML = getIconHtml(type, 20) + ' ' + getLabel(type);
   dom.reportDesc.value = "";
   dom.reportEvidence.value = "";
   dom.reportStatusMsg.textContent = "";
