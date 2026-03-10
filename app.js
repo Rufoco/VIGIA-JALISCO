@@ -50,6 +50,7 @@ const state = {
   selectedLat: null,
   selectedLng: null,
   tempPickMarker: null,
+  pickingOtherLocation: false,
   alertedIncidents: new Set(),
   alertDismissed: new Set(),
   sheetState: "peek", // peek | half | full
@@ -95,6 +96,8 @@ function cacheDom() {
   dom.sheetToggleCount = document.getElementById("sheet-toggle-count");
   dom.pickOverlay = document.getElementById("pick-overlay");
   dom.pickBackdrop = document.getElementById("pick-backdrop");
+  dom.pickOtherLocationBtn = document.getElementById("pick-other-location-btn");
+  dom.locationInfoBox = document.getElementById("location-info-box");
 }
 
 // ========== HELPERS ==========
@@ -528,21 +531,38 @@ function openReportDetail(type) {
   dom.reportStatusMsg.textContent = "";
   dom.reportSubmitBtn.disabled = false;
 
+  // Reset pick button state
+  dom.pickOtherLocationBtn.classList.remove("picked");
+  dom.pickOtherLocationBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Elegir otra ubicación en el mapa';
+
   // Use current location or let them pick
   if (state.userLat != null) {
     state.selectedLat = state.userLat;
     state.selectedLng = state.userLng;
     dom.reportLocationText.textContent = "Usando tu ubicación actual";
+    dom.locationInfoBox.style.display = "";
   } else {
     state.selectedLat = null;
     state.selectedLng = null;
     dom.reportLocationText.textContent = "Toca el mapa para elegir ubicación";
+    dom.locationInfoBox.style.display = "";
     state.pickMode = true;
     if (dom.pickOverlay) dom.pickOverlay.style.display = "block";
     if (dom.pickBackdrop) dom.pickBackdrop.style.display = "block";
   }
 
   dom.reportDetailModal.classList.add("open");
+}
+
+function startPickOtherLocation() {
+  // Hide the modal temporarily so user can interact with the map
+  dom.reportDetailModal.classList.remove("open");
+
+  // Enter pick mode
+  state.pickMode = true;
+  state.pickingOtherLocation = true;
+  if (dom.pickOverlay) dom.pickOverlay.style.display = "block";
+  if (dom.pickBackdrop) dom.pickBackdrop.style.display = "block";
 }
 
 function closeReportDetail() {
@@ -571,7 +591,20 @@ function handleMapClick(e) {
   state.pickMode = false;
   if (dom.pickOverlay) dom.pickOverlay.style.display = "none";
   if (dom.pickBackdrop) dom.pickBackdrop.style.display = "none";
+
+  // Update location UI
   dom.reportLocationText.textContent = "Ubicación seleccionada en el mapa";
+  dom.locationInfoBox.style.display = "";
+
+  // Update pick button to show it was used
+  dom.pickOtherLocationBtn.classList.add("picked");
+  dom.pickOtherLocationBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Cambiar ubicación';
+
+  // If we were picking from the "other location" flow, re-open the modal
+  if (state.pickingOtherLocation) {
+    state.pickingOtherLocation = false;
+    dom.reportDetailModal.classList.add("open");
+  }
 }
 
 async function submitReport() {
@@ -671,6 +704,9 @@ function setupEvents() {
   dom.reportDetailClose.addEventListener("click", closeReportDetail);
   dom.reportDetailBackdrop.addEventListener("click", closeReportDetail);
   dom.reportSubmitBtn.addEventListener("click", submitReport);
+
+  // Pick other location
+  dom.pickOtherLocationBtn.addEventListener("click", startPickOtherLocation);
 
   // Alert banner close
   dom.alertBannerClose.addEventListener("click", () => {

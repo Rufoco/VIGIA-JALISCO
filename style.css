@@ -392,6 +392,37 @@ input, textarea, select { font: inherit; color: inherit; }
   color: var(--green);
 }
 
+.pick-other-location-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--transition);
+  cursor: pointer;
+}
+
+.pick-other-location-btn:hover,
+.pick-other-location-btn:active {
+  border-color: #4fc3f7;
+  color: #4fc3f7;
+  background: rgba(79,195,247,0.06);
+}
+
+.pick-other-location-btn.picked {
+  border-style: solid;
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(76,175,80,0.06);
+}
+
 .report-submit-btn {
   width: 100%;
   padding: 12px;

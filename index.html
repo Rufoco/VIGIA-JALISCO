@@ -167,10 +167,14 @@
             <label class="field-label">Enlace de evidencia (opcional)</label>
             <input type="text" id="report-evidence" placeholder="Link a foto, video o noticia" />
           </div>
-          <div class="field-group location-info">
+          <div class="field-group location-info" id="location-info-box">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
             <span id="report-location-text">Usando tu ubicación actual</span>
           </div>
+          <button type="button" class="pick-other-location-btn" id="pick-other-location-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Elegir otra ubicación en el mapa
+          </button>
           <button class="report-submit-btn" id="report-submit-btn">Enviar reporte</button>
           <div class="status-msg" id="report-status-msg"></div>
         </div>
