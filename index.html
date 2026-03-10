@@ -1,23 +1,41 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+
   <meta charset="UTF-8" />
   <title>Vigía Jalisco · Mapa ciudadano de incidentes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Mapa ciudadano en tiempo real de incidentes de seguridad en Jalisco. Reporta y consulta alertas cerca de ti." />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <link
-    rel="icon"
-    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' x='0.1em' font-size='90'>🚨</text></svg>"
-  />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' x='0.1em' font-size='90'>🚨</text></svg>" />
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Aviso inicial -->
+
+  <!-- Disclaimer modal -->
   <div id="disclaimer-overlay">
     <div class="disclaimer-backdrop"></div>
     <div class="disclaimer-modal">
@@ -29,14 +47,12 @@
       <p class="disclaimer-text">
         La información se recopila en tiempo real y
         <strong>puede contener errores, imprecisiones o datos desactualizados</strong>.
-        Algunos incidentes podrían haberse resuelto o la ubicación podría no ser exacta.
       </p>
       <p class="disclaimer-text">
         Úsalo solo como referencia, <strong>no como fuente oficial</strong>.
       </p>
-      <div class="disclaimer-footer">
-        Para información oficial consulta a las autoridades de Jalisco. Emergencias
-        <strong>911</strong>.
+      <div class="disclaimer-footer-text">
+        Para información oficial consulta a las autoridades de Jalisco. Emergencias <strong>911</strong>.
       </div>
       <button id="disclaimer-accept-btn" class="disclaimer-button">
         ENTENDIDO · VER EL MAPA
@@ -44,245 +60,153 @@
     </div>
   </div>
 
+  <!-- Main app -->
   <div id="app">
-    <header>
-      <div class="header-left">
-        <h1>
-          <span class="icon">🚨</span>
-          <span>Mapa ciudadano de incidentes</span>
-        </h1>
-        <p>
-          No es fuente oficial ni servicio de emergencias. Si estás en peligro, llama al 911.
-        </p>
+    <!-- Map fills entire screen -->
+    <div id="map"></div>
+
+    <!-- Top bar - compact status -->
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <span class="live-dot"></span>
+        <span class="brand-name">Vigía Jalisco</span>
       </div>
-      <div class="brand-badge">
-        <div class="brand-badge-main">
-          <span class="icon">🛰️</span>
-          <span>Vigía Jalisco</span>
-        </div>
-        <div class="brand-badge-sub">Mapa ciudadano en tiempo real</div>
-      </div>
-    </header>
-
-    <div class="live-bar">
-      <span class="live-dot"></span>
-      <span class="live-text">EN VIVO</span>
-      <span class="live-updated" id="live-updated">Actualizado…</span>
-    </div>
-
-    <div class="main">
-      <!-- ESCRITORIO -->
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          <span>Incidentes reportados</span>
-          <span class="count-badge" id="incident-count">0</span>
-        </div>
-
-        <div class="tabs">
-          <div class="tab active" id="tab-list">Mapa</div>
-          <div class="tab" id="tab-report">Reportar</div>
-        </div>
-
-        <div class="filter-bar" id="filter-bar">
-          <button class="filter-btn active" data-mins="240">4 horas</button>
-          <button class="filter-btn" data-mins="60">1 hora</button>
-          <button class="filter-btn" data-mins="30">30 min</button>
-          <button class="filter-btn" data-mins="10">10 min</button>
-          <button class="filter-btn" data-mins="1440">24 h</button>
-          <button class="filter-btn" data-mins="0">Todos</button>
-        </div>
-
-        <div class="incidents-list" id="incidents-list"></div>
-
-        <div class="report-panel" id="report-panel">
-          <div class="field-group">
-            <div class="field-label">Tipo de incidente</div>
-            <select id="incident-type">
-              <option value="">Selecciona...</option>
-              <option value="FIRE">🔥 Incendio</option>
-              <option value="ROADBLOCK">🛑 Bloqueo en vialidad</option>
-              <option value="TIRESPIKES">🛞 Poncha llantas / clavos</option>
-              <option value="SHOOTING">💥 Balacera / enfrentamiento</option>
-              <option value="CRIME">🕵️‍♂️ Robo / secuestro / extorsión</option>
-              <option value="OTHER">⚠️ Otro peligro</option>
-            </select>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">Descripción opcional</div>
-            <textarea
-              id="incident-desc"
-              maxlength="500"
-              placeholder="Ejemplo: Incendio de vehículo, casa, lote baldío..."
-            ></textarea>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">Link de evidencia opcional</div>
-            <input
-              type="text"
-              id="incident-evidence"
-              placeholder="Enlace a foto, video o noticia"
-            />
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">Foto opcional</div>
-            <input type="file" id="incident-photo" accept="image/*" />
-          </div>
-
-          <div class="field-group">
-            <button
-              type="button"
-              class="map-pick-btn"
-              id="map-pick-btn"
-            >
-              Haz click aquí y luego en el mapa para elegir ubicación
-            </button>
-          </div>
-
-          <button class="submit-btn" id="submit-btn">Enviar reporte</button>
-          <div class="status-msg" id="status-msg"></div>
-        </div>
-
-        <div class="made-by">
-          Hecho por <span>Arnulfo Correa</span> ·
-          <a
-            href="https://www.instagram.com/rufoco"
-            target="_blank"
-            rel="noopener noreferrer"
-          >📷 Rufoco</a>
-        </div>
-      </aside>
-
-      <div class="map-container">
-        <div id="pick-backdrop"></div>
-        <div id="pick-overlay">
-          📍 Haz click donde ocurrió el incidente<br />
-          <span style="font-size: 11px">Click en cualquier lugar del mapa</span>
-        </div>
-        <div id="map"></div>
+      <div class="top-bar-right">
+        <span class="live-updated" id="live-updated">Actualizado…</span>
+        <span class="incident-count-badge" id="incident-count">0</span>
       </div>
     </div>
 
-    <!-- MÓVIL: sheet -->
-    <div id="report-sheet" class="report-sheet">
-      <div class="report-sheet-header">
-        <div class="report-sheet-header-title">
-          <span>🛰️</span>
-          <span>Vigía Jalisco</span>
-        </div>
-        <button
-          id="report-sheet-close"
-          style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;"
-        >
-          ✕
-        </button>
+    <!-- Proximity alert banner -->
+    <div class="alert-banner" id="alert-banner">
+      <div class="alert-banner-icon" id="alert-banner-icon">⚠️</div>
+      <div class="alert-banner-content">
+        <div class="alert-banner-title" id="alert-banner-title">Incidente cercano</div>
+        <div class="alert-banner-desc" id="alert-banner-desc">—</div>
       </div>
+      <div class="alert-banner-dist" id="alert-banner-dist">—</div>
+      <button class="alert-banner-close" id="alert-banner-close">✕</button>
+    </div>
 
-      <div class="report-sheet-tabs">
-        <div id="sheet-tab-map" class="report-sheet-tab active">🗺️ Mapa</div>
-        <div id="sheet-tab-report" class="report-sheet-tab">🚨 Reportar</div>
-      </div>
+    <!-- GPS locate button -->
+    <button class="map-btn map-btn-locate" id="btn-locate" title="Mi ubicación">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+      </svg>
+    </button>
 
-      <div class="report-sheet-body">
-        <div id="sheet-view-map">
-          <div class="field-label" style="margin-bottom: 4px;">
-            Incidentes reportados
-          </div>
-          <div
-            class="incidents-list mobile-incidents-list"
-            id="mobile-incidents-list"
-          ></div>
-        </div>
+    <!-- Zoom controls -->
+    <div class="map-btn-group">
+      <button class="map-btn" id="btn-zoom-in" title="Acercar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button class="map-btn" id="btn-zoom-out" title="Alejar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/></svg>
+      </button>
+    </div>
 
-        <div id="sheet-view-report" style="display: none;">
-          <div class="field-group">
-            <div class="field-label">Tipo de incidente</div>
+    <!-- Report FAB -->
+    <button class="report-fab" id="report-fab">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 9v4M12 17h.01"/>
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      </svg>
+      <span>Reportar</span>
+    </button>
 
-            <div id="incident-type-mobile-grid" class="incident-type-grid">
-              <button type="button" class="incident-type-chip" data-value="FIRE">
-                <span class="emoji">🔥</span>
-                <span class="label">Incendio</span>
-              </button>
-              <button type="button" class="incident-type-chip" data-value="ROADBLOCK">
-                <span class="emoji">🛑</span>
-                <span class="label">Bloqueo</span>
-              </button>
-              <button type="button" class="incident-type-chip" data-value="TIRESPIKES">
-                <span class="emoji">🛞</span>
-                <span class="label">Poncha llantas</span>
-              </button>
-              <button type="button" class="incident-type-chip" data-value="SHOOTING">
-                <span class="emoji">💥</span>
-                <span class="label">Balacera</span>
-              </button>
-              <button type="button" class="incident-type-chip" data-value="CRIME">
-                <span class="emoji">🕵️‍♂️</span>
-                <span class="label">Robo / secuestro</span>
-              </button>
-              <button type="button" class="incident-type-chip" data-value="OTHER">
-                <span class="emoji">⚠️</span>
-                <span class="label">Otro peligro</span>
-              </button>
-            </div>
-
-            <input type="hidden" id="incident-type-mobile" />
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">Descripción opcional</div>
-            <textarea
-              id="incident-desc-mobile"
-              maxlength="500"
-              placeholder="Ejemplo: Incendio de vehículo, casa, lote baldío..."
-            ></textarea>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">Link de evidencia opcional</div>
-            <input
-              type="text"
-              id="incident-evidence-mobile"
-              placeholder="Enlace a foto, video o noticia"
-            />
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">Foto opcional</div>
-            <input type="file" id="incident-photo-mobile" accept="image/*" />
-          </div>
-
-          <div class="field-group">
-            <button
-              type="button"
-              class="map-pick-btn"
-              id="map-pick-btn-mobile"
-            >
-              Toca aquí y luego en el mapa para elegir ubicación
-            </button>
-          </div>
-
-          <button class="submit-btn" id="submit-btn-mobile">
-            Enviar reporte
+    <!-- Quick report radial menu -->
+    <div class="radial-menu" id="radial-menu">
+      <div class="radial-backdrop" id="radial-backdrop"></div>
+      <div class="radial-center">
+        <div class="radial-title">¿Qué ocurre?</div>
+        <div class="radial-grid">
+          <button class="radial-item" data-type="FIRE">
+            <span class="radial-emoji">🔥</span>
+            <span class="radial-label">Incendio</span>
           </button>
-          <div class="status-msg" id="status-msg-mobile"></div>
+          <button class="radial-item" data-type="ROADBLOCK">
+            <span class="radial-emoji">🛑</span>
+            <span class="radial-label">Bloqueo</span>
+          </button>
+          <button class="radial-item" data-type="TIRESPIKES">
+            <span class="radial-emoji">🛞</span>
+            <span class="radial-label">Poncha llantas</span>
+          </button>
+          <button class="radial-item" data-type="SHOOTING">
+            <span class="radial-emoji">💥</span>
+            <span class="radial-label">Balacera</span>
+          </button>
+          <button class="radial-item" data-type="CRIME">
+            <span class="radial-emoji">🕵️</span>
+            <span class="radial-label">Robo</span>
+          </button>
+          <button class="radial-item" data-type="OTHER">
+            <span class="radial-emoji">⚠️</span>
+            <span class="radial-label">Otro</span>
+          </button>
         </div>
-      </div>
-
-      <div class="report-sheet-footer">
-        Hecho por <span>Arnulfo Correa</span> ·
-        <a
-          href="https://www.instagram.com/rufoco"
-          target="_blank"
-          rel="noopener noreferrer"
-        >📷 Rufoco</a>
+        <button class="radial-cancel" id="radial-cancel">Cancelar</button>
       </div>
     </div>
 
-    <button id="report-fab" class="report-fab">
-      <span>📝</span>
-      <span>Mapa / Reportar</span>
+    <!-- Report detail modal (after picking type) -->
+    <div class="report-detail-modal" id="report-detail-modal">
+      <div class="report-detail-backdrop" id="report-detail-backdrop"></div>
+      <div class="report-detail-card">
+        <div class="report-detail-header">
+          <span id="report-detail-type-label">🔥 Incendio</span>
+          <button class="report-detail-close" id="report-detail-close">✕</button>
+        </div>
+        <div class="report-detail-body">
+          <div class="field-group">
+            <label class="field-label">Descripción (opcional)</label>
+            <textarea id="report-desc" maxlength="500" placeholder="Ejemplo: Incendio de vehículo sobre Av. Vallarta…" rows="3"></textarea>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Enlace de evidencia (opcional)</label>
+            <input type="text" id="report-evidence" placeholder="Link a foto, video o noticia" />
+          </div>
+          <div class="field-group location-info">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+            <span id="report-location-text">Usando tu ubicación actual</span>
+          </div>
+          <button class="report-submit-btn" id="report-submit-btn">Enviar reporte</button>
+          <div class="status-msg" id="report-status-msg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom sheet - incidents list (desktop sidebar + mobile sheet) -->
+    <div class="bottom-sheet" id="bottom-sheet">
+      <div class="sheet-handle" id="sheet-handle"><div class="sheet-handle-bar"></div></div>
+      <div class="sheet-header">
+        <div class="sheet-header-left">
+          <span class="sheet-title">Incidentes recientes</span>
+          <span class="sheet-count" id="sheet-count">0</span>
+        </div>
+        <div class="filter-bar" id="filter-bar">
+          <button class="filter-btn active" data-mins="240">4h</button>
+          <button class="filter-btn" data-mins="60">1h</button>
+          <button class="filter-btn" data-mins="30">30m</button>
+          <button class="filter-btn" data-mins="1440">24h</button>
+          <button class="filter-btn" data-mins="0">Todo</button>
+        </div>
+      </div>
+      <div class="sheet-body" id="sheet-body">
+        <div class="incidents-list" id="incidents-list"></div>
+      </div>
+      <div class="sheet-footer">
+        Hecho por <strong>Arnulfo Correa</strong> ·
+        <a href="https://www.instagram.com/rufoco" target="_blank" rel="noopener noreferrer">📷 Rufoco</a>
+        · <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity Computer</a>
+      </div>
+    </div>
+
+    <!-- Sheet toggle (mobile) -->
+    <button class="sheet-toggle" id="sheet-toggle">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      <span id="sheet-toggle-count">0</span>
     </button>
   </div>
 
