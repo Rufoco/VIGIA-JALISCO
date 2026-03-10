@@ -246,13 +246,16 @@ input, textarea, select { font: inherit; color: inherit; }
   position: relative;
   z-index: 1;
   width: 92%;
-  max-width: 360px;
+  max-width: 380px;
   padding: 20px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   animation: scale-in 0.2s ease-out;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes scale-in {
@@ -264,21 +267,29 @@ input, textarea, select { font: inherit; color: inherit; }
   text-align: center;
   font-size: 16px;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+
+.radial-grid-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  min-height: 0;
 }
 
 .radial-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
 .radial-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 14px 6px;
+  gap: 3px;
+  padding: 10px 4px;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -288,8 +299,8 @@ input, textarea, select { font: inherit; color: inherit; }
 .radial-item:active { transform: scale(0.95); background: var(--accent-soft); border-color: var(--accent); }
 
 .radial-emoji { font-size: 28px; }
-.radial-icon { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
-.radial-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-align: center; }
+.radial-icon { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
+.radial-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-align: center; line-height: 1.2; }
 
 .radial-cancel {
   display: block;

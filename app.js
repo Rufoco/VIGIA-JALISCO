@@ -14,25 +14,49 @@ const MINUTES = 60 * 1000;
 const INCIDENT_TYPES = {
   FIRE: { label: "Incendio" },
   VEHICLEFIRE: { label: "Incendio vehicular" },
-  ROADBLOCK: { label: "Bloqueo en vialidad" },
+  ROADBLOCK: { label: "Bloqueo vial" },
   TIRESPIKES: { label: "Poncha llantas / clavos" },
   SHOOTING: { label: "Balacera / enfrentamiento" },
   CRIME: { label: "Robo / secuestro / extorsión" },
-  OTHER: { label: "Otro peligro" },
-  BLOCK: { label: "Bloqueo en vialidad" },
+  TRAFFIC_LIGHT: { label: "Semáforo descompuesto" },
+  POTHOLE: { label: "Bache" },
+  EVENT: { label: "Evento / concierto" },
+  ACCIDENT: { label: "Accidente vial" },
+  FLOOD: { label: "Inundación" },
+  SUSPICIOUS: { label: "Actividad sospechosa" },
+  OTHER: { label: "Otro" },
+  BLOCK: { label: "Bloqueo vial" },
   ROBBERY: { label: "Robo" },
 };
 
 // SVG icons — Waze-style flat vector icons
 const TYPE_ICONS = {
+  // Flame icon
   FIRE: { color: "#FF6D3A", svg: '<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c0 4-4 6-4 10a4 4 0 008 0c0-4-4-6-4-10z" fill="currentColor" opacity=".25" stroke="currentColor" stroke-width="1.5"/><path d="M12 9c0 2-1.5 3-1.5 5a1.5 1.5 0 003 0c0-2-1.5-3-1.5-5z" fill="currentColor" stroke="currentColor" stroke-width="1"/></svg>' },
   VEHICLEFIRE: { color: "#FF6D3A", svg: '<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c0 4-4 6-4 10a4 4 0 008 0c0-4-4-6-4-10z" fill="currentColor" opacity=".25" stroke="currentColor" stroke-width="1.5"/><path d="M12 9c0 2-1.5 3-1.5 5a1.5 1.5 0 003 0c0-2-1.5-3-1.5-5z" fill="currentColor" stroke="currentColor" stroke-width="1"/></svg>' },
+  // Barrier / barricade
   ROADBLOCK: { color: "#FF4757", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="8" width="18" height="8" rx="1" fill="currentColor" opacity=".2"/><path d="M3 8h18M3 16h18M7 8v8M12 8v8M17 8v8"/></svg>' },
   BLOCK: { color: "#FF4757", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="8" width="18" height="8" rx="1" fill="currentColor" opacity=".2"/><path d="M3 8h18M3 16h18M7 8v8M12 8v8M17 8v8"/></svg>' },
-  TIRESPIKES: { color: "#FFA502", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7" fill="currentColor" opacity=".15"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>' },
-  SHOOTING: { color: "#E84393", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" fill="currentColor" opacity=".12"/><path d="M12 8v8M8 12h8" stroke-width="2.5"/><circle cx="12" cy="12" r="3" fill="currentColor" opacity=".3"/></svg>' },
-  CRIME: { color: "#A29BFE", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5" fill="currentColor" opacity=".15"/><path d="M3 21v-1a7 7 0 0114 0v1"/><path d="M16 3.13a4 4 0 010 7.75M21 21v-1a4 4 0 00-3-3.85"/></svg>' },
-  ROBBERY: { color: "#A29BFE", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5" fill="currentColor" opacity=".15"/><path d="M3 21v-1a7 7 0 0114 0v1"/><path d="M16 3.13a4 4 0 010 7.75M21 21v-1a4 4 0 00-3-3.85"/></svg>' },
+  // Nail / spike on road
+  TIRESPIKES: { color: "#FFA502", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20" stroke-width="2"/><path d="M6 20l2-7 2 7" fill="currentColor" opacity=".2"/><path d="M10 20l2-7 2 7" fill="currentColor" opacity=".3"/><path d="M14 20l2-7 2 7" fill="currentColor" opacity=".2"/><circle cx="8" cy="11" r="1" fill="currentColor"/><circle cx="12" cy="11" r="1" fill="currentColor"/><circle cx="16" cy="11" r="1" fill="currentColor"/></svg>' },
+  // Crosshair / target scope
+  SHOOTING: { color: "#E84393", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8" fill="currentColor" opacity=".1"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>' },
+  // Mask / thief
+  CRIME: { color: "#A29BFE", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="5" fill="currentColor" opacity=".15"/><circle cx="9" cy="12" r="2.5"/><circle cx="15" cy="12" r="2.5"/><path d="M11.5 12h1"/></svg>' },
+  ROBBERY: { color: "#A29BFE", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="5" fill="currentColor" opacity=".15"/><circle cx="9" cy="12" r="2.5"/><circle cx="15" cy="12" r="2.5"/><path d="M11.5 12h1"/></svg>' },
+  // Traffic light with X
+  TRAFFIC_LIGHT: { color: "#FF6B81", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2" fill="currentColor" opacity=".12"/><circle cx="12" cy="6.5" r="2" fill="currentColor" opacity=".3"/><circle cx="12" cy="12" r="2" fill="currentColor" opacity=".5"/><circle cx="12" cy="17.5" r="2" fill="currentColor" opacity=".3"/><path d="M9 9.5l6 5M15 9.5l-6 5" stroke-width="1.5"/></svg>' },
+  // Road with hole
+  POTHOLE: { color: "#F8B500", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16h5l1.5 2.5h7L17 16h5" /><ellipse cx="12" cy="14" rx="4" ry="2" fill="currentColor" opacity=".25" stroke-width="1.5"/><path d="M10 13l1-2M14 13l-1-2" stroke-width="1.5"/></svg>' },
+  // Music note / event
+  EVENT: { color: "#45AAF2", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3" fill="currentColor" opacity=".25"/><circle cx="18" cy="16" r="3" fill="currentColor" opacity=".25"/></svg>' },
+  // Car collision
+  ACCIDENT: { color: "#FC5C65", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14l1-5h-4l-1-3H9L8 12H4l1 5z" fill="currentColor" opacity=".15"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/><path d="M14 3l-2 2 2 2M16 2l-2 2 2 2" stroke-width="1.5"/></svg>' },
+  // Water / flood
+  FLOOD: { color: "#4BCFFA", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0" fill="currentColor" opacity=".15"/><path d="M2 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 17c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 7c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></svg>' },
+  // Eye / suspicious
+  SUSPICIOUS: { color: "#D980FA", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" fill="currentColor" opacity=".1"/><circle cx="12" cy="12" r="3" fill="currentColor" opacity=".3"/></svg>' },
+  // Warning triangle
   OTHER: { color: "#FECA57", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" fill="currentColor" opacity=".15"/><path d="M12 9v4M12 17h.01"/></svg>' },
 };
 
