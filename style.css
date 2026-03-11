@@ -873,3 +873,30 @@ input, textarea, select { font: inherit; color: inherit; }
 }
 
 .empty-state-icon { font-size: 32px; margin-bottom: 8px; }
+
+/* ========== INCIDENT VOTES ========== */
+.incident-votes {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.vote-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.06);
+  color: #eee;
+}
+
+.vote-yes {
+  background: rgba(76, 175, 80, 0.2);
+  color: #a5d6a7;
+}
+
+.vote-no {
+  background: rgba(244, 67, 54, 0.2);
+  color: #ef9a9a;
+}

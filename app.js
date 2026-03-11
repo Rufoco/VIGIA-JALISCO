@@ -89,6 +89,22 @@ const state = {
   sheetState: "peek", // peek | half | full
 };
 
+function getOrCreateVoterId() {
+  const KEY = "vigia_voter_id";
+  let id = localStorage.getItem(KEY);
+  if (!id) {
+    if (crypto.randomUUID) {
+      id = crypto.randomUUID();
+    } else {
+      id = String(Date.now()) + "-" + Math.random();
+    }
+    localStorage.setItem(KEY, id);
+  }
+  return id;
+}
+
+const VOTER_ID = getOrCreateVoterId();
+
 // ========== DOM REFS ==========
 const dom = {};
 
@@ -463,6 +479,29 @@ function buildIncidentItem(inc) {
     item.appendChild(distEl);
   }
 
+  const votesBox = document.createElement("div");
+  votesBox.className = "incident-votes";
+
+  const btnYes = document.createElement("button");
+  btnYes.className = "vote-btn vote-yes";
+  btnYes.textContent = "Sí está";
+  btnYes.addEventListener("click", (e) => {
+    e.stopPropagation();
+    voteIncident(inc.id, true);
+  });
+
+  const btnNo = document.createElement("button");
+  btnNo.className = "vote-btn vote-no";
+  btnNo.textContent = "Ya no está";
+  btnNo.addEventListener("click", (e) => {
+    e.stopPropagation();
+    voteIncident(inc.id, false);
+  });
+
+  votesBox.appendChild(btnYes);
+  votesBox.appendChild(btnNo);
+  item.appendChild(votesBox);
+
   item.addEventListener("click", () => {
     if (Number.isFinite(inc.lat) && Number.isFinite(inc.lng)) {
       state.map.setView([inc.lat, inc.lng], 15, { animate: true });
@@ -703,6 +742,29 @@ async function submitReport() {
   dom.reportStatusMsg.className = "status-msg status-ok";
 
   setTimeout(() => closeReportDetail(), 1500);
+}
+
+async function voteIncident(incidentId, isPresent) {
+  try {
+    const { error } = await supabaseClient
+      .from("incident_votes")
+      .insert({
+        incident_id: incidentId,
+        vote: isPresent,
+        voter_id: VOTER_ID,
+      });
+
+    if (error) {
+      console.error("Error votando incidente:", error);
+      alert("Error al registrar tu voto. Intenta de nuevo.");
+      return;
+    }
+
+    alert(isPresent ? "Gracias por confirmar." : "Gracias por avisar que ya no está.");
+  } catch (err) {
+    console.error("Error inesperado votando incidente:", err);
+    alert("Error de red. Intenta de nuevo.");
+  }
 }
 
 // ========== DISCLAIMER ==========
