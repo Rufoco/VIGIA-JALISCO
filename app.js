@@ -70,7 +70,7 @@ const state = {
   markersLayer: null,
   allIncidents: [],
   filteredIncidents: [],
-  filterMins: 240,
+  filterMins: 0,
   userLat: null,
   userLng: null,
   userMarker: null,

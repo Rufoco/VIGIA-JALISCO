@@ -825,11 +825,6 @@ input, textarea, select { font: inherit; color: inherit; }
 @media (max-width: 768px) {
   .sheet-toggle { display: flex; }
 
-  .report-fab {
-    bottom: 24px;
-    right: 12px;
-  }
-
   .bottom-sheet { max-height: 75vh; }
 
   .alert-banner { top: 52px; }
@@ -839,6 +834,33 @@ input, textarea, select { font: inherit; color: inherit; }
 
   .report-detail-card {
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  /* Footer: sale del flujo del sheet y se fija al fondo de la pantalla */
+  .sheet-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1002;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 6px 14px;
+    padding-bottom: max(env(safe-area-inset-bottom, 6px), 6px);
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-faint);
+  }
+
+  /* Subir el sheet-toggle para que no tape el footer */
+  .sheet-toggle {
+    bottom: 42px;
+  }
+
+  /* Subir el FAB para que no tape el footer */
+  .report-fab {
+    bottom: 56px;
+    right: 12px;
   }
 }
 
