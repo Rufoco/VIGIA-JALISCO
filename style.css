@@ -613,6 +613,7 @@ input, textarea, select { font: inherit; color: inherit; }
   color: var(--text-faint);
   border-top: 1px solid var(--border);
   text-align: center;
+  background: var(--surface);
 }
 
 .sheet-footer a { color: var(--amber); text-decoration: none; }
@@ -819,6 +820,26 @@ input, textarea, select { font: inherit; color: inherit; }
     left: 380px;
     right: 16px;
   }
+
+  /* Footer fijo al fondo del sidebar en escritorio */
+  .sheet-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 360px;
+    z-index: 1002;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 8px 14px;
+    font-size: 10px;
+    color: var(--text-faint);
+    text-align: center;
+  }
+
+  /* Padding para que la lista no quede tapada por el footer */
+  .sheet-body {
+    padding-bottom: 34px;
+  }
 }
 
 /* Mobile */
@@ -836,7 +857,7 @@ input, textarea, select { font: inherit; color: inherit; }
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
 
-  /* Footer: sale del flujo del sheet y se fija al fondo de la pantalla */
+  /* Footer fijo al fondo de la pantalla en móvil */
   .sheet-footer {
     position: fixed;
     bottom: 0;
@@ -852,12 +873,10 @@ input, textarea, select { font: inherit; color: inherit; }
     color: var(--text-faint);
   }
 
-  /* Subir el sheet-toggle para que no tape el footer */
   .sheet-toggle {
     bottom: 42px;
   }
 
-  /* Subir el FAB para que no tape el footer */
   .report-fab {
     bottom: 56px;
     right: 12px;
